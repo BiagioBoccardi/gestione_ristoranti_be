@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la \"c:\\\\Users\\\\biagi\\\\Desktop\\\\progetti Infobasic\\\\java\\\\gestione_ristorante\\\\gestione_ristoranti_fe\\\\gestione-ristorante-ui\\\\src\\\\pages\")",
+      "Read(//c/Users/biagi/Desktop/progetti Infobasic/java/gestione_ristorante/gestione_ristoranti_fe/gestione-ristorante-ui/src/pages/**)",
+      "Read(//c/Users/biagi/Desktop/progetti Infobasic/java/gestione_ristorante/gestione_ristoranti_fe/gestione-ristorante-ui/src/**)",
+      "PowerShell(Set-Location \"c:\\\\Users\\\\biagi\\\\Desktop\\\\progetti Infobasic\\\\java\\\\gestione_ristorante\\\\gestione_ristoranti\"; Get-ChildItem -Recurse -Directory -Name | Where-Object {$_ -match \"frontend|client|react|vue|angular\"})",
+      "PowerShell(Set-Location \"c:\\\\Users\\\\biagi\\\\Desktop\\\\progetti Infobasic\\\\java\\\\gestione_ristorante\\\\gestione_ristoranti\"; ls -R | Where-Object {$_ -is [System.IO.DirectoryInfo]} | Select-Object Name)",
+      "Read(//c/Users/biagi/Desktop/progetti Infobasic/java/gestione_ristorante/gestione_ristoranti_fe/gestione-ristorante-ui/**)"
+    ]
+  }
+}

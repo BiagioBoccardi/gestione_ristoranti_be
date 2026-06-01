@@ -1,0 +1,162 @@
+/* FullCalendar — stile professionale stone */
+
+.fc {
+  font-family: inherit;
+}
+
+/* Toolbar */
+.fc .fc-toolbar {
+  margin-bottom: 1.25rem;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #1c1917;
+}
+
+/* Bottoni toolbar */
+.fc .fc-button {
+  background: white;
+  border: 1px solid #e7e5e4;
+  color: #57534e;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.5rem;
+  box-shadow: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.fc .fc-button:hover {
+  background: #f5f5f4;
+  color: #1c1917;
+  border-color: #d6d3d1;
+}
+
+.fc .fc-button:focus {
+  box-shadow: 0 0 0 2px #d6d3d1;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background: #1c1917;
+  border-color: #1c1917;
+  color: #fafaf9;
+}
+
+.fc .fc-button-group .fc-button {
+  border-radius: 0;
+}
+
+.fc .fc-button-group .fc-button:first-child {
+  border-radius: 0.5rem 0 0 0.5rem;
+}
+
+.fc .fc-button-group .fc-button:last-child {
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+/* Intestazioni giorni */
+.fc .fc-col-header-cell-cushion {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #78716c;
+  text-decoration: none;
+  padding: 0.5rem 0;
+}
+
+/* Numeri dei giorni */
+.fc .fc-daygrid-day-number {
+  font-size: 0.75rem;
+  color: #57534e;
+  text-decoration: none;
+  padding: 0.4rem 0.6rem;
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+  background: #fafaf9;
+}
+
+.fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+  background: #1c1917;
+  color: white;
+  border-radius: 50%;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0.25rem;
+  padding: 0;
+}
+
+/* Griglia */
+.fc .fc-scrollgrid {
+  border-color: #e7e5e4;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.fc .fc-scrollgrid-section > td,
+.fc .fc-scrollgrid-section > th {
+  border-color: #e7e5e4;
+}
+
+.fc td, .fc th {
+  border-color: #e7e5e4;
+}
+
+/* Evento */
+.fc .fc-event {
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 0.15rem 0.4rem;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.fc .fc-event:hover {
+  opacity: 0.85;
+}
+
+.fc .fc-event-title {
+  font-weight: 500;
+}
+
+/* Selezione drag */
+.fc .fc-highlight {
+  background: #e7e5e4;
+  opacity: 0.5;
+}
+
+/* Time grid */
+.fc .fc-timegrid-slot-label-cushion {
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: #a8a29e;
+}
+
+.fc .fc-timegrid-now-indicator-line {
+  border-color: #1c1917;
+}
+
+.fc .fc-timegrid-now-indicator-arrow {
+  border-top-color: #1c1917;
+  border-bottom-color: #1c1917;
+}
+
+/* More link */
+.fc .fc-daygrid-more-link {
+  font-size: 0.65rem;
+  color: #78716c;
+  font-weight: 500;
+}
