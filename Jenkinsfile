@@ -32,10 +32,6 @@ pipeline {
                 always {
                     junit allowEmptyResults: true,
                           testResults: 'target/surefire-reports/*.xml'
-                    recordCoverage(
-                        tools: [[parser: 'JACOCO', pattern: 'target/site/jacoco/jacoco.xml']],
-                        enabledForFailure: true
-                    )
                 }
             }
         }
