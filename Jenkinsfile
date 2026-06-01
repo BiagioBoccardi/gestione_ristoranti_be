@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'Maven3'
+    }
+
     environment {
         FRONTEND_DIR   = 'frontend'
         IMAGE_BACKEND  = "biagioboccardi/gestione-ristorante-backend"
