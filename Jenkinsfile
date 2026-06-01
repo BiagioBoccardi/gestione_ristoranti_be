@@ -26,7 +26,7 @@ pipeline {
         // ── 2. BUILD & TEST BACKEND ───────────────────────────────────────────
         stage('Build & Test Backend') {
             steps {
-                sh 'mvn clean package -B'
+                bat 'mvn clean package -B'
             }
             post {
                 always {
@@ -40,16 +40,10 @@ pipeline {
         stage('Security Scan (Snyk)') {
             steps {
                 withCredentials([string(credentialsId: 'snyk-token', variable: 'SNYK_TOKEN')]) {
-                    sh '''
-                        snyk auth "$SNYK_TOKEN"
-                        snyk test --severity-threshold=high --file=pom.xml \
-                                  --project-name=gestione-ristorante-backend || true
-                    '''
+                    bat 'snyk auth %SNYK_TOKEN%'
+                    bat 'snyk test --severity-threshold=high --file=pom.xml --project-name=gestione-ristorante-backend || exit 0'
                     dir(env.FRONTEND_DIR) {
-                        sh '''
-                            snyk test --severity-threshold=high \
-                                      --project-name=gestione-ristorante-frontend || true
-                        '''
+                        bat 'snyk test --severity-threshold=high --project-name=gestione-ristorante-frontend || exit 0'
                     }
                 }
             }
@@ -59,7 +53,7 @@ pipeline {
         stage('SonarCloud Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    sh 'mvn sonar:sonar -B -DskipTests'
+                    bat 'mvn sonar:sonar -B -DskipTests'
                 }
             }
         }
@@ -76,9 +70,9 @@ pipeline {
         stage('Build & Test Frontend') {
             steps {
                 dir(env.FRONTEND_DIR) {
-                    sh 'npm ci --prefer-offline'
-                    sh 'npm test -- --run'
-                    sh 'npm run build'
+                    bat 'npm ci --prefer-offline'
+                    bat 'npm test -- --run'
+                    bat 'npm run build'
                 }
             }
         }
@@ -92,7 +86,7 @@ pipeline {
                     string(credentialsId: 'jwt-secret',        variable: 'JWT_SECRET'),
                     string(credentialsId: 'mail-password',     variable: 'MAIL_PASSWORD')
                 ]) {
-                    sh 'docker compose build --pull'
+                    bat 'docker compose build --pull'
                 }
             }
         }
@@ -107,23 +101,16 @@ pipeline {
                         passwordVariable: 'DOCKER_PASS'
                     )
                 ]) {
-                    sh '''
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-
-                        docker tag gestione_ristoranti_be-backend:latest \
-                                   "$DOCKER_USER/gestione-ristorante-backend:latest"
-                        docker tag gestione_ristoranti_be-backend:latest \
-                                   "$DOCKER_USER/gestione-ristorante-backend:${BUILD_NUMBER}"
-                        docker push "$DOCKER_USER/gestione-ristorante-backend:latest"
-                        docker push "$DOCKER_USER/gestione-ristorante-backend:${BUILD_NUMBER}"
-
-                        docker tag gestione_ristoranti_be-frontend:latest \
-                                   "$DOCKER_USER/gestione-ristorante-frontend:latest"
-                        docker tag gestione_ristoranti_be-frontend:latest \
-                                   "$DOCKER_USER/gestione-ristorante-frontend:${BUILD_NUMBER}"
-                        docker push "$DOCKER_USER/gestione-ristorante-frontend:latest"
-                        docker push "$DOCKER_USER/gestione-ristorante-frontend:${BUILD_NUMBER}"
-
+                    powershell '''
+                        $env:DOCKER_PASS | docker login -u $env:DOCKER_USER --password-stdin
+                        docker tag gestione_ristoranti_be-backend:latest "$($env:DOCKER_USER)/gestione-ristorante-backend:latest"
+                        docker tag gestione_ristoranti_be-backend:latest "$($env:DOCKER_USER)/gestione-ristorante-backend:$($env:BUILD_NUMBER)"
+                        docker push "$($env:DOCKER_USER)/gestione-ristorante-backend:latest"
+                        docker push "$($env:DOCKER_USER)/gestione-ristorante-backend:$($env:BUILD_NUMBER)"
+                        docker tag gestione_ristoranti_be-frontend:latest "$($env:DOCKER_USER)/gestione-ristorante-frontend:latest"
+                        docker tag gestione_ristoranti_be-frontend:latest "$($env:DOCKER_USER)/gestione-ristorante-frontend:$($env:BUILD_NUMBER)"
+                        docker push "$($env:DOCKER_USER)/gestione-ristorante-frontend:latest"
+                        docker push "$($env:DOCKER_USER)/gestione-ristorante-frontend:$($env:BUILD_NUMBER)"
                         docker logout
                     '''
                 }
@@ -139,7 +126,7 @@ pipeline {
                     string(credentialsId: 'jwt-secret',        variable: 'JWT_SECRET'),
                     string(credentialsId: 'mail-password',     variable: 'MAIL_PASSWORD')
                 ]) {
-                    sh 'docker compose up -d --remove-orphans'
+                    bat 'docker compose up -d --remove-orphans'
                 }
             }
         }
@@ -147,21 +134,33 @@ pipeline {
         // ── 9. SMOKE TEST ─────────────────────────────────────────────────────
         stage('Smoke Test') {
             steps {
-                sh '''
-                    echo "Attesa avvio servizi (30s)..."
-                    sleep 30
+                powershell '''
+                    Write-Host "Attesa avvio servizi (30s)..."
+                    Start-Sleep -Seconds 30
 
-                    FE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/)
-                    [ "$FE" = "200" ] || { echo "Frontend non risponde: $FE"; exit 1; }
-                    echo "Frontend OK ($FE)"
+                    try {
+                        $FE = (Invoke-WebRequest -Uri "http://localhost/" -UseBasicParsing).StatusCode
+                    } catch {
+                        $FE = $_.Exception.Response.StatusCode.value__
+                    }
+                    if ($FE -ne 200) { Write-Error "Frontend non risponde: $FE"; exit 1 }
+                    Write-Host "Frontend OK ($FE)"
 
-                    API=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/menu/categorie)
-                    { [ "$API" = "200" ] || [ "$API" = "401" ]; } || { echo "API non risponde: $API"; exit 1; }
-                    echo "API OK ($API)"
+                    try {
+                        $API = (Invoke-WebRequest -Uri "http://localhost/api/menu/categorie" -UseBasicParsing).StatusCode
+                    } catch {
+                        $API = $_.Exception.Response.StatusCode.value__
+                    }
+                    if ($API -ne 200 -and $API -ne 401) { Write-Error "API non risponde: $API"; exit 1 }
+                    Write-Host "API OK ($API)"
 
-                    HEALTH=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/actuator/health)
-                    [ "$HEALTH" = "200" ] || { echo "Health endpoint non risponde: $HEALTH"; exit 1; }
-                    echo "Health OK ($HEALTH)"
+                    try {
+                        $HEALTH = (Invoke-WebRequest -Uri "http://localhost/api/actuator/health" -UseBasicParsing).StatusCode
+                    } catch {
+                        $HEALTH = $_.Exception.Response.StatusCode.value__
+                    }
+                    if ($HEALTH -ne 200) { Write-Error "Health endpoint non risponde: $HEALTH"; exit 1 }
+                    Write-Host "Health OK ($HEALTH)"
                 '''
             }
         }
@@ -173,7 +172,7 @@ pipeline {
         }
         failure {
             echo 'Pipeline fallita — ultimi log dei container:'
-            sh 'docker compose logs --tail=80 || true'
+            bat 'docker compose logs --tail=80 || exit 0'
         }
         cleanup {
             cleanWs()
