@@ -134,7 +134,7 @@ class OrdineControllerTest extends AbstractIntegrationTest {
     @WithMockUser(roles = "ADMIN")
     void aggiornaStato_ordineNonEsistente_404() throws Exception {
         String body = """
-                {"stato":"IN_PREPARAZIONE"}
+                {"nuovoStato":"IN_PREPARAZIONE"}
                 """;
 
         mockMvc.perform(patch("/api/ordini/999999/stato")

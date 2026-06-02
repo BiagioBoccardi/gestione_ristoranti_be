@@ -51,6 +51,14 @@ class ContoControllerTest extends AbstractIntegrationTest {
                 .andReturn().getResponse().getContentAsString();
 
         ordineId = ((Number) JsonPath.read(ordineResponse, "$.data.id")).longValue();
+
+        for (String stato : new String[]{"IN_PREPARAZIONE", "PRONTO", "CONSEGNATO"}) {
+            mockMvc.perform(patch("/api/ordini/" + ordineId + "/stato")
+                            .header("Authorization", authHeader(token))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"nuovoStato\":\"" + stato + "\"}"))
+                    .andExpect(status().isOk());
+        }
     }
 
     @AfterEach

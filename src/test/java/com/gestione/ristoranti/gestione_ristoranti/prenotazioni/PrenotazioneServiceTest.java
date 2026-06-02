@@ -47,7 +47,7 @@ class PrenotazioneServiceTest {
         tavolo.setNumero(4);
 
         utenteProprietario = mock(Utente.class);
-        when(utenteProprietario.getEmail()).thenReturn("proprietario@test.com");
+        lenient().when(utenteProprietario.getEmail()).thenReturn("proprietario@test.com");
     }
 
     @Test
@@ -91,8 +91,7 @@ class PrenotazioneServiceTest {
         when(prenotazioneRepository.findByTavoloAndData(tavolo, LocalDate.now()))
                 .thenReturn(List.of(esistente));
 
-        Prenotazione saved = mock(Prenotazione.class);
-        when(prenotazioneRepository.save(any())).thenReturn(saved);
+        when(prenotazioneRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         prenotazioneService.crea(request, "utente@test.com");
 
