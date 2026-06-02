@@ -140,7 +140,7 @@ class ContoControllerTest extends AbstractIntegrationTest {
         contoId = ((Number) JsonPath.read(apriResponse, "$.data.id")).longValue();
 
         String pagaBody = """
-                {"metodoPagamento":"CONTANTI"}
+                {"metodo":"CONTANTI"}
                 """;
 
         mockMvc.perform(put("/api/conti/" + contoId + "/paga")
