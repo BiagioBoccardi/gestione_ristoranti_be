@@ -168,9 +168,19 @@ class ContoControllerTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "CLIENTE")
     void split_cliente_403() throws Exception {
-        mockMvc.perform(get("/api/conti/1/split").param("persone", "2"))
+        String apriResponse = mockMvc.perform(
+                        post("/api/conti/" + ordineId)
+                                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+                                        .user("admin@restora.it").roles("ADMIN")))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        contoId = ((Number) JsonPath.read(apriResponse, "$.data.id")).longValue();
+
+        mockMvc.perform(get("/api/conti/" + contoId + "/split")
+                        .param("persone", "2")
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+                                .user("cliente@test.com").roles("CLIENTE")))
                 .andExpect(status().isForbidden());
     }
 }
