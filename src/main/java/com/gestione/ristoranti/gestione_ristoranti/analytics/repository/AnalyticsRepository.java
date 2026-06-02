@@ -25,7 +25,7 @@ public interface AnalyticsRepository extends JpaRepository<Conto, Long> {
     Long ordiniCompletatiPeriodo(@Param("da") LocalDateTime da, @Param("a") LocalDateTime a);
 
     // Revenue giornaliera con fallback su creatoIl
-    @Query(value = "SELECT DATE(COALESCE(c.pagamento_il, o.creato_il)) AS giorno, " +
+    @Query(value = "SELECT CAST(COALESCE(c.pagamento_il, o.creato_il) AS DATE) AS giorno, " +
                    "COALESCE(SUM(c.totale), 0), COUNT(c.id) " +
                    "FROM conti c JOIN ordini o ON c.ordine_id = o.id " +
                    "WHERE c.pagato = true " +

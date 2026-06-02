@@ -27,20 +27,20 @@ public class RbacAuthorizationTest {
     @Test
     @WithMockUser(roles = "STAFF")
     public void quandoStaffAccedeAdAreaAdmin_alloraForbidden() throws Exception {
-        mockMvc.perform(get("/api/admin/staff-list"))
+        mockMvc.perform(get("/api/admin/utenti"))
                .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
     public void quandoAdminAccedeAdAreaAdmin_alloraOk() throws Exception {
-        mockMvc.perform(get("/api/admin/staff-list"))
+        mockMvc.perform(get("/api/admin/utenti"))
                .andExpect(status().isOk());
     }
 
     @Test
     public void quandoAnonimoAccede_allora401() throws Exception {
-        mockMvc.perform(get("/api/admin/staff-list"))
+        mockMvc.perform(get("/api/admin/utenti"))
                .andExpect(status().isUnauthorized());
     }
 }
