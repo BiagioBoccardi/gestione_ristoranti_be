@@ -63,14 +63,13 @@ class ContoControllerTest extends AbstractIntegrationTest {
 
     @AfterEach
     void cleanup() {
-        if (contoId != null) {
-            contoRepository.deleteById(contoId);
-            contoId = null;
-        }
         if (ordineId != null) {
+            contoRepository.findByOrdineId(ordineId)
+                    .ifPresent(c -> contoRepository.deleteById(c.getId()));
             ordineRepository.deleteById(ordineId);
             ordineId = null;
         }
+        contoId = null;
     }
 
     // ── POST apriConto ────────────────────────────────────────────────────────
