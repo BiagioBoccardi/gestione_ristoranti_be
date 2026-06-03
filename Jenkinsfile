@@ -40,18 +40,31 @@ pipeline {
             }
         }
 
-        // ── 3. SECURITY SCAN (Snyk) ───────────────────────────────────────────
+                // ── 3. SECURITY SCAN (Snyk) ───────────────────────────────────────────
         stage('Security Scan (Snyk)') {
             steps {
-                withCredentials([string(credentialsId: 'snyk-token', variable: 'SNYK_TOKEN')]) {
-                    bat 'snyk auth %SNYK_TOKEN%'
-                    bat 'snyk test --severity-threshold=high --file=pom.xml --project-name=gestione-ristorante-backend || exit 0'
-                    dir(env.FRONTEND_DIR) {
-                        bat 'snyk test --severity-threshold=high --project-name=gestione-ristorante-frontend || exit 0'
-                    }
+                dir(env.BACKEND_DIR) {
+                    snykSecurity(
+                        snykInstallation: 'snyk',
+                        snykTokenId: 'snyk-token',
+                        severity: 'high',
+                        targetFile: 'pom.xml',
+                        projectName: 'gestione-ristorante-backend',
+                        failOnIssues: false
+                    )
+                }
+                dir(env.FRONTEND_DIR) {
+                    snykSecurity(
+                        snykInstallation: 'snyk',
+                        snykTokenId: 'snyk-token',
+                        severity: 'high',
+                        projectName: 'gestione-ristorante-frontend',
+                        failOnIssues: false
+                    )
                 }
             }
         }
+
 
         // ── 4. SONARCLOUD ANALYSIS ────────────────────────────────────────────
         stage('SonarCloud Analysis') {
