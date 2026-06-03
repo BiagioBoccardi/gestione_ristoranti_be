@@ -49,7 +49,8 @@ pipeline {
                     severity: 'high',
                     targetFile: 'pom.xml',
                     projectName: 'gestione-ristorante-backend',
-                    failOnIssues: false
+                    failOnIssues: false,
+                    monitorProjectOnBuild: false
                 )
             }
         }
