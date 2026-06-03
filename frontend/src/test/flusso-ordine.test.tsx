@@ -229,7 +229,7 @@ describe('OrdineCard – visualizzazione e interazioni', () => {
     const onCambiaStato = vi.fn().mockResolvedValue(undefined);
     render(<OrdineCard ordine={ordineBase} onEdit={vi.fn()} onCambiaStato={onCambiaStato} canEdit={true} />);
 
-    await user.selectOptions(screen.getByRole('combobox'), 'IN_PREPARAZIONE');
+    await user.click(screen.getByRole('button', { name: /inizia preparazione/i }));
     expect(onCambiaStato).toHaveBeenCalledWith(10, 'IN_PREPARAZIONE');
   });
 

@@ -7,7 +7,7 @@ import type { Ordine, OrdineStatoEvent, StatoOrdine } from '@/types/ordine';
 // ── Mock AppSidebar (evita dipendenza da AuthContext) ─────────────────────────
 
 vi.mock('@/components/layout/AppSidebar', () => ({
-  AppSidebar: () => null,
+  default: () => null,
 }));
 
 // ── Mock hook WebSocket ───────────────────────────────────────────────────────
