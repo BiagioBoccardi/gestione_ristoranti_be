@@ -24,13 +24,20 @@ public class RequestBodyLoggingFilter extends OncePerRequestFilter {
         if (request.getRequestURI().contains("/stato") && "PATCH".equals(request.getMethod())) {
             ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper(request);
             filterChain.doFilter(wrappedRequest, response);
-            byte[] body = wrappedRequest.getContentAsByteArray();
-            log.info("[RAW_REQUEST] URI={} ContentType={} Body='{}'",
-                    request.getRequestURI(),
-                    request.getContentType(),
-                    new String(body, StandardCharsets.UTF_8));
+            if (log.isInfoEnabled()) {
+                byte[] body = wrappedRequest.getContentAsByteArray();
+                log.info("[RAW_REQUEST] URI={} ContentType={} Body='{}'",
+                        sanitize(request.getRequestURI()),
+                        sanitize(request.getContentType()),
+                        sanitize(new String(body, StandardCharsets.UTF_8)));
+            }
         } else {
             filterChain.doFilter(request, response);
         }
+    }
+
+    private static String sanitize(String value) {
+        if (value == null) return "";
+        return value.replaceAll("[\r\n\t]", "_");
     }
 }
