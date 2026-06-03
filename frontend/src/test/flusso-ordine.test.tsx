@@ -5,6 +5,13 @@ import userEvent from '@testing-library/user-event';
 import type { Ordine, StatoOrdine, Tavolo } from '@/types/ordine';
 import type { Piatto } from '@/types/menu';
 
+// ── Mock react-router-dom ─────────────────────────────────────────────────────
+
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return { ...(actual as object), useNavigate: () => vi.fn() };
+});
+
 // ── Mock componenti UI ────────────────────────────────────────────────────────
 
 vi.mock('@/components/ui/dialog', () => ({

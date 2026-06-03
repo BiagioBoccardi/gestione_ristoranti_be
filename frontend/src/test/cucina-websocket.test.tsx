@@ -4,6 +4,12 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Ordine, OrdineStatoEvent, StatoOrdine } from '@/types/ordine';
 
+// ── Mock AppSidebar (evita dipendenza da AuthContext) ─────────────────────────
+
+vi.mock('@/components/layout/AppSidebar', () => ({
+  AppSidebar: () => null,
+}));
+
 // ── Mock hook WebSocket ───────────────────────────────────────────────────────
 
 vi.mock('@/hooks/useKitchenSocket', () => ({
