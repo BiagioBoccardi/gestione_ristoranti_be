@@ -50,7 +50,7 @@ pipeline {
                     targetFile: 'pom.xml',
                     projectName: 'gestione-ristorante-backend',
                     failOnIssues: false,
-                    monitorProjectOnBuild: false
+                    monitorProjectOnBuild: true
                 )
             }
         }
