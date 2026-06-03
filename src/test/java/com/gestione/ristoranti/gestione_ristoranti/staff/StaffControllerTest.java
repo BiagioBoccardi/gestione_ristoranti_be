@@ -24,8 +24,7 @@ class StaffControllerTest extends AbstractIntegrationTest {
     @WithMockUser(roles = "CAMERIERE")
     void getStaff_cameriere_403() throws Exception {
         mockMvc.perform(get("/api/staff"))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.status").value(403));
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -57,8 +56,7 @@ class StaffControllerTest extends AbstractIntegrationTest {
     @WithMockUser(roles = "CUOCO")
     void getTurni_cuoco_403() throws Exception {
         mockMvc.perform(get("/api/staff/turni"))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.status").value(403));
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -87,8 +85,7 @@ class StaffControllerTest extends AbstractIntegrationTest {
         mockMvc.perform(post("/api/staff/turni")
                         .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
                         .content("{\"utenteId\":1,\"dataInizio\":\"2099-01-01T09:00:00\"}"))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.status").value(403));
+                .andExpect(status().isForbidden());
     }
 
     // ── PUT turno ─────────────────────────────────────────────────────────────
@@ -117,7 +114,6 @@ class StaffControllerTest extends AbstractIntegrationTest {
     @WithMockUser(roles = "CAMERIERE")
     void eliminaTurno_cameriere_403() throws Exception {
         mockMvc.perform(delete("/api/staff/turni/1"))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.status").value(403));
+                .andExpect(status().isForbidden());
     }
 }

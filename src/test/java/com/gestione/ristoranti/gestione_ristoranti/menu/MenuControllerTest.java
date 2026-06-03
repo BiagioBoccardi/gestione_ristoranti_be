@@ -70,7 +70,7 @@ class MenuControllerTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.data.nome").value("Piatto Test"))
                 .andReturn().getResponse().getContentAsString();
 
-        createdPiattoId = com.jayway.jsonpath.JsonPath.read(response, "$.data.id");
+        createdPiattoId = ((Number) com.jayway.jsonpath.JsonPath.read(response, "$.data.id")).longValue();
     }
 
     @Test

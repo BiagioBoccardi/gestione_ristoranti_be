@@ -68,7 +68,7 @@ class TavoloControllerTest extends AbstractIntegrationTest {
     @WithMockUser(roles = "ADMIN")
     void createTavolo_admin_201() throws Exception {
         String body = """
-                {"numero":99,"coperti":4}
+                {"numero":99,"coperti":4,"stato":"LIBERO"}
                 """;
 
         String response = mockMvc.perform(post("/api/tavoli")
@@ -87,7 +87,7 @@ class TavoloControllerTest extends AbstractIntegrationTest {
     void createTavolo_cameriere_403() throws Exception {
         mockMvc.perform(post("/api/tavoli")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"numero\":99,\"coperti\":4}"))
+                        .content("{\"numero\":99,\"coperti\":4,\"stato\":\"LIBERO\"}"))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.status").value(403));
     }

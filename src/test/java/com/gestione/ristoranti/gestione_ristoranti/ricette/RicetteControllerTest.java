@@ -62,7 +62,7 @@ class RicetteControllerTest extends AbstractIntegrationTest {
     @WithMockUser(roles = "ADMIN")
     void creaIngrediente_admin_201() throws Exception {
         String body = """
-                {"nome":"Pomodoro","unitaMisura":"KG","prezzoUnitario":1.50}
+                {"nome":"Pomodoro","unitaMisura":"KG","costoPerUnita":1.50}
                 """;
 
         String response = mockMvc.perform(post("/api/ingredienti")
@@ -91,7 +91,7 @@ class RicetteControllerTest extends AbstractIntegrationTest {
     void creaIngrediente_cuoco_403() throws Exception {
         mockMvc.perform(post("/api/ingredienti")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"nome\":\"Olio\",\"unitaMisura\":\"L\",\"prezzoUnitario\":5.00}"))
+                        .content("{\"nome\":\"Olio\",\"unitaMisura\":\"L\",\"costoPerUnita\":5.00}"))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.status").value(403));
     }
@@ -103,7 +103,7 @@ class RicetteControllerTest extends AbstractIntegrationTest {
     void aggiornaIngrediente_nonEsistente_404() throws Exception {
         mockMvc.perform(put("/api/ingredienti/999999")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"nome\":\"Olio\",\"unitaMisura\":\"L\",\"prezzoUnitario\":5.00}"))
+                        .content("{\"nome\":\"Olio\",\"unitaMisura\":\"L\",\"costoPerUnita\":5.00}"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404));
     }
@@ -161,7 +161,7 @@ class RicetteControllerTest extends AbstractIntegrationTest {
     void aggiungiVoce_piattoNonEsistente_404() throws Exception {
         mockMvc.perform(post("/api/ricette/999999/voci")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"ingredienteId\":1,\"quantita\":100}"))
+                        .content("{\"ingredienteId\":1,\"quantita\":100,\"percentualeScarto\":0}"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404));
     }

@@ -59,7 +59,6 @@ class PrenotazioneServiceTest {
 
         // Prenotazione esistente alla stessa ora → conflitto
         Prenotazione esistente = mock(Prenotazione.class);
-        when(esistente.getId()).thenReturn(99L);
         when(esistente.getOra()).thenReturn(LocalTime.of(20, 0));
 
         when(utenteRepository.findByEmail("utente@test.com")).thenReturn(Optional.of(utenteProprietario));
@@ -82,7 +81,6 @@ class PrenotazioneServiceTest {
 
         // Prenotazione esistente a 3 ore di distanza → nessun conflitto
         Prenotazione esistente = mock(Prenotazione.class);
-        when(esistente.getId()).thenReturn(99L);
         when(esistente.getOra()).thenReturn(LocalTime.of(23, 0));
 
         Utente richiedente = mock(Utente.class);
@@ -105,7 +103,6 @@ class PrenotazioneServiceTest {
         when(ruoloCliente.getNome()).thenReturn("CLIENTE");
 
         Utente altroUtente = mock(Utente.class);
-        when(altroUtente.getEmail()).thenReturn("altro@test.com");
         when(altroUtente.getRuolo()).thenReturn(ruoloCliente);
 
         Prenotazione prenotazione = mock(Prenotazione.class);
@@ -125,7 +122,6 @@ class PrenotazioneServiceTest {
         when(ruoloAdmin.getNome()).thenReturn("ADMIN");
 
         Utente admin = mock(Utente.class);
-        when(admin.getEmail()).thenReturn("admin@test.com");
         when(admin.getRuolo()).thenReturn(ruoloAdmin);
 
         Prenotazione prenotazione = mock(Prenotazione.class);

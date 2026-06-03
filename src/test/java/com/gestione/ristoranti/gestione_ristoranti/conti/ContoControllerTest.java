@@ -87,9 +87,10 @@ class ContoControllerTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "CUOCO")
     void apriConto_cuoco_403() throws Exception {
-        mockMvc.perform(post("/api/conti/" + ordineId))
+        mockMvc.perform(post("/api/conti/" + ordineId)
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+                                .user("cuoco@test.com").roles("CUOCO")))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.status").value(403));
     }
