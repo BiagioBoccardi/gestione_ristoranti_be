@@ -62,7 +62,8 @@ public class ContoService {
     @Transactional
     public ContoResponse apriConto(Long ordineId) {
         if (contoRepository.existsByOrdineId(ordineId)) {
-            return mapToResponse(contoRepository.findByOrdineId(ordineId).get());
+            return mapToResponse(contoRepository.findByOrdineId(ordineId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Conto non trovato")));
         }
 
         Ordine ordine = ordineRepository.findById(ordineId)
