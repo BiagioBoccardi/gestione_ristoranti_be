@@ -88,11 +88,15 @@ pipeline {
         stage('Docker Build') {
             steps {
                 withCredentials([
-                    string(credentialsId: 'postgres-user',      variable: 'POSTGRES_USER'),
-                    string(credentialsId: 'postgres-password',  variable: 'POSTGRES_PASSWORD'),
-                    string(credentialsId: 'jwt-secret',         variable: 'JWT_SECRET'),
-                    string(credentialsId: 'mail-password',      variable: 'MAIL_PASSWORD'),
-                    string(credentialsId: 'dockerhub-username', variable: 'DOCKER_HUB_USERNAME')
+                    string(credentialsId: 'postgres-user',     variable: 'POSTGRES_USER'),
+                    string(credentialsId: 'postgres-password', variable: 'POSTGRES_PASSWORD'),
+                    string(credentialsId: 'jwt-secret',        variable: 'JWT_SECRET'),
+                    string(credentialsId: 'mail-password',     variable: 'MAIL_PASSWORD'),
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKER_HUB_USERNAME',
+                        passwordVariable: 'DOCKER_HUB_PASSWORD'
+                    )
                 ]) {
                     bat 'docker compose build --pull'
                 }
