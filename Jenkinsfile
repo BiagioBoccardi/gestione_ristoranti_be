@@ -9,6 +9,7 @@ pipeline {
         FRONTEND_DIR   = 'frontend'
         IMAGE_BACKEND  = "biagioboccardi/gestione-ristorante-backend"
         IMAGE_FRONTEND = "biagioboccardi/gestione-ristorante-frontend"
+        DOCKER_HUB_USERNAME = credentials('dockerhub-username')
     }
 
     options {
@@ -115,12 +116,12 @@ pipeline {
                 ]) {
                     powershell '''
                         $env:DOCKER_PASS | docker login -u $env:DOCKER_USER --password-stdin
-                        docker tag gestione_ristoranti_be-backend:latest "$($env:DOCKER_USER)/gestione-ristorante-backend:latest"
-                        docker tag gestione_ristoranti_be-backend:latest "$($env:DOCKER_USER)/gestione-ristorante-backend:$($env:BUILD_NUMBER)"
+                        docker tag "$($env:DOCKER_HUB_USERNAME)/gestione-ristorante-backend:latest" "$($env:DOCKER_USER)/gestione-ristorante-backend:latest"
+                        docker tag "$($env:DOCKER_HUB_USERNAME)/gestione-ristorante-backend:latest" "$($env:DOCKER_USER)/gestione-ristorante-backend:$($env:BUILD_NUMBER)"
                         docker push "$($env:DOCKER_USER)/gestione-ristorante-backend:latest"
                         docker push "$($env:DOCKER_USER)/gestione-ristorante-backend:$($env:BUILD_NUMBER)"
-                        docker tag gestione_ristoranti_be-frontend:latest "$($env:DOCKER_USER)/gestione-ristorante-frontend:latest"
-                        docker tag gestione_ristoranti_be-frontend:latest "$($env:DOCKER_USER)/gestione-ristorante-frontend:$($env:BUILD_NUMBER)"
+                        docker tag "$($env:DOCKER_HUB_USERNAME)/gestione-ristorante-frontend:latest" "$($env:DOCKER_USER)/gestione-ristorante-frontend:latest"
+                        docker tag "$($env:DOCKER_HUB_USERNAME)/gestione-ristorante-frontend:latest" "$($env:DOCKER_USER)/gestione-ristorante-frontend:$($env:BUILD_NUMBER)"
                         docker push "$($env:DOCKER_USER)/gestione-ristorante-frontend:latest"
                         docker push "$($env:DOCKER_USER)/gestione-ristorante-frontend:$($env:BUILD_NUMBER)"
                         docker logout
@@ -136,7 +137,12 @@ pipeline {
                     string(credentialsId: 'postgres-user',     variable: 'POSTGRES_USER'),
                     string(credentialsId: 'postgres-password', variable: 'POSTGRES_PASSWORD'),
                     string(credentialsId: 'jwt-secret',        variable: 'JWT_SECRET'),
-                    string(credentialsId: 'mail-password',     variable: 'MAIL_PASSWORD')
+                    string(credentialsId: 'mail-password',     variable: 'MAIL_PASSWORD'),
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKER_HUB_USERNAME',
+                        passwordVariable: 'DOCKER_HUB_PASSWORD'
+                    )
                 ]) {
                     bat 'docker compose up -d --remove-orphans'
                 }
