@@ -1,0 +1,202 @@
+pipeline {
+    agent any
+
+    environment {
+        BACKEND_DIR   = 'gestione_ristoranti'
+        FRONTEND_DIR  = 'gestione_ristoranti_fe/gestione-ristorante-ui'
+        APP_BASE_URL  = 'http://localhost'
+    }
+
+    options {
+        timestamps()
+        timeout(time: 45, unit: 'MINUTES')
+        disableConcurrentBuilds()
+    }
+
+    stages {
+
+        // ── 1. CHECKOUT (Git) ─────────────────────────────────────────────────
+        stage('Checkout') {
+            steps {
+                checkout scm
+                echo "Branch: ${env.GIT_BRANCH} — Commit: ${env.GIT_COMMIT?.take(8)}"
+            }
+        }
+
+        // ── 2. BUILD & TEST BACKEND ───────────────────────────────────────────
+        stage('Build & Test Backend') {
+            steps {
+                dir(env.BACKEND_DIR) {
+                    sh 'mvn clean package -B'
+                }
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true,
+                          testResults: "${env.BACKEND_DIR}/target/surefire-reports/*.xml"
+                    recordCoverage(
+                        tools: [[parser: 'JACOCO', pattern: "${env.BACKEND_DIR}/target/site/jacoco/jacoco.xml"]],
+                        enabledForFailure: true
+                    )
+                }
+            }
+        }
+
+        // ── 3. SECURITY SCAN (Snyk) ───────────────────────────────────────────
+        stage('Security Scan (Snyk)') {
+            steps {
+                dir(env.BACKEND_DIR) {
+                    snykSecurity(
+                        snykInstallation: 'snyk',
+                        snykTokenId: 'snyk-token',
+                        severity: 'high',
+                        targetFile: 'pom.xml',
+                        projectName: 'gestione-ristorante-backend',
+                        failOnIssues: false
+                    )
+                }
+                dir(env.FRONTEND_DIR) {
+                    snykSecurity(
+                        snykInstallation: 'snyk',
+                        snykTokenId: 'snyk-token',
+                        severity: 'high',
+                        projectName: 'gestione-ristorante-frontend',
+                        failOnIssues: false
+                    )
+                }
+            }
+        }
+
+        // ── 4. SONARQUBE ANALYSIS ─────────────────────────────────────────────
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    dir(env.BACKEND_DIR) {
+                        sh 'mvn sonar:sonar -B -DskipTests'
+                    }
+                }
+            }
+        }
+
+        stage('SonarQube Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        // ── 5. BUILD & TEST FRONTEND ──────────────────────────────────────────
+        stage('Build & Test Frontend') {
+            steps {
+                dir(env.FRONTEND_DIR) {
+                    sh 'npm ci --prefer-offline'
+                    sh 'npm test -- --run'
+                    sh 'npm run build'
+                }
+            }
+        }
+
+        // ── 6. DOCKER BUILD ───────────────────────────────────────────────────
+        stage('Docker Build') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'postgres-user',     variable: 'POSTGRES_USER'),
+                    string(credentialsId: 'postgres-password', variable: 'POSTGRES_PASSWORD'),
+                    string(credentialsId: 'jwt-secret',        variable: 'JWT_SECRET'),
+                    string(credentialsId: 'mail-password',     variable: 'MAIL_PASSWORD'),
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKER_HUB_USERNAME',
+                        passwordVariable: 'DOCKER_HUB_PASSWORD'
+                    )
+                ]) {
+                    sh 'docker compose build --pull'
+                }
+            }
+        }
+
+        // ── 7. PUSH TO DOCKER HUB ─────────────────────────────────────────────
+        stage('Push to Docker Hub') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+
+                        docker tag "$DOCKER_USER/gestione-ristorante-backend:latest" \
+                                   "$DOCKER_USER/gestione-ristorante-backend:${BUILD_NUMBER}"
+                        docker push "$DOCKER_USER/gestione-ristorante-backend:latest"
+                        docker push "$DOCKER_USER/gestione-ristorante-backend:${BUILD_NUMBER}"
+
+                        docker tag "$DOCKER_USER/gestione-ristorante-frontend:latest" \
+                                   "$DOCKER_USER/gestione-ristorante-frontend:${BUILD_NUMBER}"
+                        docker push "$DOCKER_USER/gestione-ristorante-frontend:latest"
+                        docker push "$DOCKER_USER/gestione-ristorante-frontend:${BUILD_NUMBER}"
+
+                        docker logout
+                    '''
+                }
+            }
+        }
+
+        // ── 8. DEPLOY ─────────────────────────────────────────────────────────
+        stage('Deploy') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'postgres-user',      variable: 'POSTGRES_USER'),
+                    string(credentialsId: 'postgres-password',  variable: 'POSTGRES_PASSWORD'),
+                    string(credentialsId: 'jwt-secret',         variable: 'JWT_SECRET'),
+                    string(credentialsId: 'mail-password',      variable: 'MAIL_PASSWORD'),
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKER_HUB_USERNAME',
+                        passwordVariable: 'DOCKER_HUB_PASSWORD'
+                    )
+                ]) {
+                    sh 'docker compose up -d --remove-orphans'
+                }
+            }
+        }
+
+        // ── 9. SMOKE TEST ─────────────────────────────────────────────────────
+        stage('Smoke Test') {
+            steps {
+                sh '''
+                    echo "Attesa avvio servizi (30s)..."
+                    sleep 30
+
+                    FE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/)
+                    [ "$FE" = "200" ] || { echo "Frontend non risponde: $FE"; exit 1; }
+                    echo "Frontend OK ($FE)"
+
+                    API=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/menu/categorie)
+                    { [ "$API" = "200" ] || [ "$API" = "401" ]; } || { echo "API non risponde: $API"; exit 1; }
+                    echo "API OK ($API)"
+
+                    HEALTH=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/actuator/health)
+                    [ "$HEALTH" = "200" ] || { echo "Health endpoint non risponde: $HEALTH"; exit 1; }
+                    echo "Health OK ($HEALTH)"
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline completata — immagini pubblicate su Docker Hub (build #${BUILD_NUMBER})"
+        }
+        failure {
+            echo 'Pipeline fallita — ultimi log dei container:'
+            sh 'docker compose logs --tail=80 || true'
+        }
+        cleanup {
+            cleanWs()
+        }
+    }
+}
