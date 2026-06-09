@@ -4,6 +4,21 @@ import userEvent from '@testing-library/user-event';
 import OrdineForm from '@/components/ordini/OrdineForm';
 import type { Piatto } from '@/types/menu';
 
+vi.mock('@/components/ui/dialog', () => ({
+  Dialog: {
+    Root: ({ children, open }: { children: React.ReactNode; open: boolean }) =>
+      open ? <div data-testid="dialog-root">{children}</div> : null,
+  },
+  DialogContent: ({ children, className }: { children: React.ReactNode; className?: string }) =>
+    <div role="dialog" className={className}>{children}</div>,
+  DialogHeader: ({ children }: { children: React.ReactNode }) =>
+    <div>{children}</div>,
+  DialogTitle: ({ children }: { children: React.ReactNode }) =>
+    <h2>{children}</h2>,
+  DialogFooter: ({ children }: { children: React.ReactNode }) =>
+    <div>{children}</div>,
+}));
+
 const piatti: Piatto[] = [
   { id: 1, nome: 'Pizza Margherita', prezzo: 8.5, disponibile: true, categoriaId: 1, categoriaName: 'Pizze', immagineUrl: null, descrizione: '' },
   { id: 2, nome: 'Pasta al Ragù', prezzo: 9.0, disponibile: true, categoriaId: 2, categoriaName: 'Primi', immagineUrl: null, descrizione: '' },
