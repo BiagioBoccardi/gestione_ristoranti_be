@@ -153,8 +153,18 @@ pipeline {
         stage('Smoke Test') {
             steps {
                 powershell '''
-                    Write-Host "Attesa avvio servizi (30s)..."
-                    Start-Sleep -Seconds 30
+                    Write-Host "Attesa avvio backend (max 120s)..."
+                    $deadline = (Get-Date).AddSeconds(120)
+                    $ready = $false
+                    while ((Get-Date) -lt $deadline) {
+                        try {
+                            $status = (Invoke-WebRequest -Uri "http://localhost/api/actuator/health" -UseBasicParsing -TimeoutSec 3).StatusCode
+                            if ($status -eq 200) { $ready = $true; break }
+                        } catch {}
+                        Start-Sleep -Seconds 5
+                    }
+                    if (-not $ready) { Write-Error "Backend non pronto dopo 120s"; exit 1 }
+                    Write-Host "Backend pronto"
 
                     try {
                         $FE = (Invoke-WebRequest -Uri "http://localhost/" -UseBasicParsing).StatusCode
@@ -172,13 +182,7 @@ pipeline {
                     if ($API -ne 200 -and $API -ne 401) { Write-Error "API non risponde: $API"; exit 1 }
                     Write-Host "API OK ($API)"
 
-                    try {
-                        $HEALTH = (Invoke-WebRequest -Uri "http://localhost/api/actuator/health" -UseBasicParsing).StatusCode
-                    } catch {
-                        $HEALTH = $_.Exception.Response.StatusCode.value__
-                    }
-                    if ($HEALTH -ne 200) { Write-Error "Health endpoint non risponde: $HEALTH"; exit 1 }
-                    Write-Host "Health OK ($HEALTH)"
+                    Write-Host "Health OK (200)"
                 '''
             }
         }
