@@ -168,8 +168,20 @@ pipeline {
         stage('Smoke Test') {
             steps {
                 sh '''
-                    echo "Attesa avvio servizi (30s)..."
-                    sleep 30
+                    echo "Attesa avvio backend (max 240s)..."
+                    for i in $(seq 1 24); do
+                        STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/actuator/health 2>/dev/null || echo "000")
+                        if [ "$STATUS" = "200" ]; then
+                            echo "Backend pronto dopo $((i*10))s"
+                            break
+                        fi
+                        if [ "$i" = "24" ]; then
+                            echo "Backend non pronto dopo 240s"
+                            exit 1
+                        fi
+                        echo "Tentativo $i/24 — health: $STATUS, attendo 10s..."
+                        sleep 10
+                    done
 
                     FE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/)
                     [ "$FE" = "200" ] || { echo "Frontend non risponde: $FE"; exit 1; }
