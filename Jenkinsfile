@@ -163,7 +163,14 @@ pipeline {
                         } catch {}
                         Start-Sleep -Seconds 5
                     }
-                    if (-not $ready) { Write-Error "Backend non pronto dopo 120s"; exit 1 }
+                    if (-not $ready) {
+                        Write-Host "=== docker compose ps ==="
+                        & docker compose ps
+                        Write-Host "=== backend logs (ultimi 60 righe) ==="
+                        & docker compose logs --tail=60 backend
+                        Write-Error "Backend non pronto dopo 120s"
+                        exit 1
+                    }
                     Write-Host "Backend pronto"
 
                     try {
