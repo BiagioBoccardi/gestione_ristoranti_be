@@ -117,9 +117,9 @@ describe('OrdineForm – creazione e modifica ordine', () => {
     expect(screen.getByText('Modifica ordine #10')).toBeInTheDocument();
   });
 
-  it('il pulsante Salva è disabilitato senza un piatto selezionato', () => {
+  it('il pulsante Salva è disabilitato senza un piatto selezionato', async () => {
     render(<OrdineForm open={true} onClose={vi.fn()} onSave={vi.fn()} piatti={piatti} tavoloId={1} />);
-    expect(screen.getByRole('button', { name: /salva ordine/i })).toBeDisabled();
+    expect(await screen.findByRole('button', { name: /salva ordine/i })).toBeDisabled();
   });
 
   it('il pulsante Salva si abilita dopo aver selezionato un piatto', async () => {

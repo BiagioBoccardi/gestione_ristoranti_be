@@ -1,7 +1,6 @@
 /// <reference types="vitest/globals" />
 import type {} from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import type { Ordine, OrdineStatoEvent, StatoOrdine } from '@/types/ordine';
 
 // ── Mock AppSidebar (evita dipendenza da AuthContext) ─────────────────────────
@@ -176,15 +175,16 @@ describe('CucinaPage — vista cucina real-time', () => {
   });
 
   it('chiama updateStatoOrdine quando il cuoco avanza uno stato', async () => {
-    const user = userEvent.setup();
     vi.mocked(ordineService.getOrdini).mockResolvedValue([ordineInAttesa]);
 
     render(<CucinaPage />);
 
     await screen.findByTestId('ordine-10');
-    await user.click(screen.getByRole('button', { name: /avanza/i }));
+    fireEvent.click(screen.getByRole('button', { name: /avanza/i }));
 
-    expect(ordineService.updateStatoOrdine).toHaveBeenCalledWith(10, 'IN_PREPARAZIONE');
+    await waitFor(() => {
+      expect(ordineService.updateStatoOrdine).toHaveBeenCalledWith(10, 'IN_PREPARAZIONE');
+    });
   });
 
   it('mostra il messaggio di errore quando il caricamento fallisce', async () => {

@@ -19,6 +19,30 @@ vi.mock('@/components/ui/dialog', () => ({
     <div>{children}</div>,
 }));
 
+vi.mock('@/components/ui/button', () => ({
+  Button: ({ children, onClick, disabled, type, className }: {
+    children: React.ReactNode;
+    onClick?: () => void;
+    disabled?: boolean;
+    type?: 'button' | 'submit' | 'reset';
+    className?: string;
+    variant?: string;
+    size?: string;
+  }) => <button type={type ?? 'button'} onClick={onClick} disabled={disabled} className={className}>{children}</button>,
+}));
+
+vi.mock('@/components/ui/input', () => ({
+  Input: (props: React.InputHTMLAttributes<HTMLInputElement>) => <input {...props} />,
+}));
+
+vi.mock('@/components/ui/label', () => ({
+  Label: ({ children }: { children: React.ReactNode }) => <label>{children}</label>,
+}));
+
+vi.mock('@/components/ui/textarea', () => ({
+  Textarea: (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => <textarea {...props} />,
+}));
+
 const piatti: Piatto[] = [
   { id: 1, nome: 'Pizza Margherita', prezzo: 8.5, disponibile: true, categoriaId: 1, categoriaName: 'Pizze', immagineUrl: null, descrizione: '' },
   { id: 2, nome: 'Pasta al Ragù', prezzo: 9.0, disponibile: true, categoriaId: 2, categoriaName: 'Primi', immagineUrl: null, descrizione: '' },
