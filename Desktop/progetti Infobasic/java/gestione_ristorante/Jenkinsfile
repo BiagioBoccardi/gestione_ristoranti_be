@@ -167,33 +167,34 @@ pipeline {
         // ── 9. SMOKE TEST ─────────────────────────────────────────────────────
         stage('Smoke Test') {
             steps {
-                sh '''
-                    echo "Attesa avvio backend (max 240s)..."
-                    for i in $(seq 1 24); do
-                        STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/actuator/health 2>/dev/null || echo "000")
-                        if [ "$STATUS" = "200" ]; then
-                            echo "Backend pronto dopo $((i*10))s"
-                            break
-                        fi
-                        if [ "$i" = "24" ]; then
-                            echo "Backend non pronto dopo 240s"
-                            exit 1
-                        fi
-                        echo "Tentativo $i/24 — health: $STATUS, attendo 10s..."
-                        sleep 10
-                    done
+                powershell '''
+                    Write-Host "Attesa avvio backend (max 240s)..."
+                    $ready = $false
+                    for ($i = 1; $i -le 24; $i++) {
+                        try {
+                            $r = Invoke-WebRequest -Uri "http://localhost/api/actuator/health" -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
+                            if ($r.StatusCode -eq 200) {
+                                Write-Host "Backend pronto dopo $($i * 10)s"
+                                $ready = $true
+                                break
+                            }
+                        } catch { }
+                        Write-Host "Tentativo $i/24 - attendo 10s..."
+                        Start-Sleep -Seconds 10
+                    }
+                    if (-not $ready) { Write-Error "Backend non pronto dopo 240s"; exit 1 }
 
-                    FE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/)
-                    [ "$FE" = "200" ] || { echo "Frontend non risponde: $FE"; exit 1; }
-                    echo "Frontend OK ($FE)"
+                    $fe = try { (Invoke-WebRequest -Uri "http://localhost/" -UseBasicParsing -ErrorAction Stop).StatusCode } catch { $_.Exception.Response.StatusCode.value__ }
+                    if ($fe -ne 200) { Write-Error "Frontend non risponde: $fe"; exit 1 }
+                    Write-Host "Frontend OK ($fe)"
 
-                    API=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/menu/categorie)
-                    { [ "$API" = "200" ] || [ "$API" = "401" ]; } || { echo "API non risponde: $API"; exit 1; }
-                    echo "API OK ($API)"
+                    $api = try { (Invoke-WebRequest -Uri "http://localhost/api/menu/categorie" -UseBasicParsing -ErrorAction Stop).StatusCode } catch { $_.Exception.Response.StatusCode.value__ }
+                    if ($api -ne 200 -and $api -ne 401) { Write-Error "API non risponde: $api"; exit 1 }
+                    Write-Host "API OK ($api)"
 
-                    HEALTH=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/actuator/health)
-                    [ "$HEALTH" = "200" ] || { echo "Health endpoint non risponde: $HEALTH"; exit 1; }
-                    echo "Health OK ($HEALTH)"
+                    $health = try { (Invoke-WebRequest -Uri "http://localhost/api/actuator/health" -UseBasicParsing -ErrorAction Stop).StatusCode } catch { $_.Exception.Response.StatusCode.value__ }
+                    if ($health -ne 200) { Write-Error "Health endpoint non risponde: $health"; exit 1 }
+                    Write-Host "Health OK ($health)"
                 '''
             }
         }
@@ -205,7 +206,7 @@ pipeline {
         }
         failure {
             echo 'Pipeline fallita — ultimi log dei container:'
-            sh 'docker compose logs --tail=80 || true'
+            bat 'docker compose logs --tail=80 || exit 0'
         }
         cleanup {
             cleanWs()
