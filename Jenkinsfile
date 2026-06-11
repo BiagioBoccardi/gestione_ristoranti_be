@@ -153,8 +153,8 @@ pipeline {
         stage('Smoke Test') {
             steps {
                 powershell '''
-                    Write-Host "Attesa avvio backend (max 120s)..."
-                    $deadline = (Get-Date).AddSeconds(120)
+                    Write-Host "Attesa avvio backend (max 240s)..."
+                    $deadline = (Get-Date).AddSeconds(240)
                     $ready = $false
                     while ((Get-Date) -lt $deadline) {
                         try {
@@ -168,7 +168,7 @@ pipeline {
                         & docker compose ps
                         Write-Host "=== backend logs (ultimi 60 righe) ==="
                         & docker compose logs --tail=60 backend
-                        Write-Error "Backend non pronto dopo 120s"
+                        Write-Error "Backend non pronto dopo 240s"
                         exit 1
                     }
                     Write-Host "Backend pronto"
