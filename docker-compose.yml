@@ -3,6 +3,7 @@ services:
   # ── DATABASE ────────────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: gestione_ristorante
       POSTGRES_USER: ${POSTGRES_USER}
@@ -25,6 +26,7 @@ services:
   # ── BACKEND ─────────────────────────────────────────────────────────────────
   backend:
     image: ${DOCKER_HUB_USERNAME}/gestione-ristorante-backend:latest
+    restart: unless-stopped
     build:
       context: .
     environment:
@@ -50,6 +52,7 @@ services:
   # ── FRONTEND ────────────────────────────────────────────────────────────────
   frontend:
     image: ${DOCKER_HUB_USERNAME}/gestione-ristorante-frontend:latest
+    restart: unless-stopped
     build:
       context: ./frontend
       args:
@@ -69,6 +72,7 @@ services:
   # ── OBSERVABILITY ───────────────────────────────────────────────────────────
   prometheus:
     image: prom/prometheus:v2.51.2
+    restart: unless-stopped
     volumes:
       - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
@@ -87,6 +91,7 @@ services:
 
   grafana:
     image: grafana/grafana:10.4.2
+    restart: unless-stopped
     volumes:
       - grafana_data:/var/lib/grafana
       - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
