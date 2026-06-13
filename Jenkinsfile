@@ -204,7 +204,7 @@ pipeline {
             bat 'docker compose logs --tail=80 || exit 0'
         }
         cleanup {
-            cleanWs()
+            cleanWs(patterns: [[pattern: '.git/**', type: 'EXCLUDE']])
         }
     }
 }
