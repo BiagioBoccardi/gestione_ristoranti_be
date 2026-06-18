@@ -1,3 +1,4 @@
+// Pipeline CI/CD — Gestione Ristorante (Gemini)
 pipeline {
     agent any
 
