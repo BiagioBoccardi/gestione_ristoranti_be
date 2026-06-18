@@ -38,9 +38,11 @@ class MenuControllerTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void getPiatti_nonAutenticato_401() throws Exception {
+    void getPiatti_nonAutenticato_200() throws Exception {
+        // /api/menu/piatti è pubblico per supportare il QR code (clienti senza login)
         mockMvc.perform(get("/api/menu/piatti"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isArray());
     }
 
     @Test
