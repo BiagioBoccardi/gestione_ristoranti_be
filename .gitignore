@@ -12,6 +12,7 @@ frontend/.env.local
 # Secrets
 .env
 *.env.local
+src/main/resources/application-local.properties
 
 # IDE
 .idea/

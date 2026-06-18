@@ -14,6 +14,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +40,15 @@ public class Utente {
     @NotBlank
     @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false)
+    private boolean primoAccesso = false;
+
+    @Column(name = "codice_verifica")
+    private String codiceVerifica;
+
+    @Column(name = "scadenza_codice")
+    private LocalDateTime scadenzaCodice;
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "ruolo_id", nullable = false)
@@ -125,5 +135,29 @@ public class Utente {
 
     public void setTurni(List<Turno> turni) {
         this.turni = turni;
+    }
+
+    public boolean isPrimoAccesso() {
+        return primoAccesso;
+    }
+
+    public void setPrimoAccesso(boolean primoAccesso) {
+        this.primoAccesso = primoAccesso;
+    }
+
+    public String getCodiceVerifica() {
+        return codiceVerifica;
+    }
+
+    public void setCodiceVerifica(String codiceVerifica) {
+        this.codiceVerifica = codiceVerifica;
+    }
+
+    public LocalDateTime getScadenzaCodice() {
+        return scadenzaCodice;
+    }
+
+    public void setScadenzaCodice(LocalDateTime scadenzaCodice) {
+        this.scadenzaCodice = scadenzaCodice;
     }
 }

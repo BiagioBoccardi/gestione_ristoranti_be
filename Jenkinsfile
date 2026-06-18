@@ -92,6 +92,7 @@ pipeline {
                     string(credentialsId: 'postgres-user',     variable: 'POSTGRES_USER'),
                     string(credentialsId: 'postgres-password', variable: 'POSTGRES_PASSWORD'),
                     string(credentialsId: 'jwt-secret',        variable: 'JWT_SECRET'),
+                    string(credentialsId: 'mail-username',     variable: 'MAIL_USERNAME'),
                     string(credentialsId: 'mail-password',     variable: 'MAIL_PASSWORD'),
                     usernamePassword(
                         credentialsId: 'dockerhub-credentials',
@@ -137,6 +138,7 @@ pipeline {
                     string(credentialsId: 'postgres-user',     variable: 'POSTGRES_USER'),
                     string(credentialsId: 'postgres-password', variable: 'POSTGRES_PASSWORD'),
                     string(credentialsId: 'jwt-secret',        variable: 'JWT_SECRET'),
+                    string(credentialsId: 'mail-username',     variable: 'MAIL_USERNAME'),
                     string(credentialsId: 'mail-password',     variable: 'MAIL_PASSWORD'),
                     usernamePassword(
                         credentialsId: 'dockerhub-credentials',

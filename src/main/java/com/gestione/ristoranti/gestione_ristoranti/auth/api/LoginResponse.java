@@ -6,6 +6,8 @@ public class LoginResponse {
     private String type = "Bearer";
     private String nome;
     private String ruolo;
+    private Boolean primoAccesso;
+    private String email;
 
     public LoginResponse(String token, String nome, String ruolo) {
         this.token = token;
@@ -13,31 +15,27 @@ public class LoginResponse {
         this.ruolo = ruolo;
     }
 
-    public String getToken() {
-        return token;
+    private LoginResponse() {}
+
+    public static LoginResponse forPrimoAccesso(String email) {
+        LoginResponse r = new LoginResponse();
+        r.primoAccesso = true;
+        r.email = email;
+        return r;
     }
 
-    public void setToken(String token) {
-        this.token = token;
-    }
+    public String getToken() { return token; }
+    public void setToken(String token) { this.token = token; }
 
-    public String getType() {
-        return type;
-    }
+    public String getType() { return type; }
 
-    public String getNome() {
-        return nome;
-    }
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
 
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
+    public String getRuolo() { return ruolo; }
+    public void setRuolo(String ruolo) { this.ruolo = ruolo; }
 
-    public String getRuolo() {
-        return ruolo;
-    }
+    public Boolean getPrimoAccesso() { return primoAccesso; }
 
-    public void setRuolo(String ruolo) {
-        this.ruolo = ruolo;
-    }
+    public String getEmail() { return email; }
 }

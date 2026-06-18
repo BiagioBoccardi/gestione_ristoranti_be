@@ -14,10 +14,13 @@ RUN java -Djarmode=layertools -jar app.war extract
 
 # Stage 3: run
 FROM eclipse-temurin:21-jre-alpine
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
 COPY --from=extract /app/dependencies/ ./
 COPY --from=extract /app/spring-boot-loader/ ./
 COPY --from=extract /app/snapshot-dependencies/ ./
 COPY --from=extract /app/application/ ./
+RUN chown -R appuser:appgroup /app
+USER appuser
 EXPOSE 8080
 ENTRYPOINT ["java", "org.springframework.boot.loader.launch.WarLauncher"]

@@ -9,6 +9,7 @@ import com.gestione.ristoranti.gestione_ristoranti.auth.repository.RuoloReposito
 import com.gestione.ristoranti.gestione_ristoranti.auth.repository.UtenteRepository;
 import com.gestione.ristoranti.gestione_ristoranti.auth.security.JwtUtils;
 import com.gestione.ristoranti.gestione_ristoranti.exception.ResourceNotFoundException;
+import com.gestione.ristoranti.gestione_ristoranti.prenotazioni.service.EmailService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,37 +18,37 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class AuthService {
+
+    private static final String CHARS_TEMP_PWD = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
     private final UtenteRepository utenteRepository;
     private final RuoloRepository ruoloRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     public AuthService(AuthenticationManager authenticationManager,
                        JwtUtils jwtUtils,
                        UtenteRepository utenteRepository,
                        RuoloRepository ruoloRepository,
-                       PasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder,
+                       EmailService emailService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
         this.utenteRepository = utenteRepository;
         this.ruoloRepository = ruoloRepository;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
     }
 
-    /**
-     * Autentica un utente tramite email e password, generando un token JWT.
-     *
-     * @param email    email dell'utente
-     * @param password password in chiaro
-     * @return risposta con JWT, nome utente e ruolo
-     * @throws org.springframework.security.authentication.BadCredentialsException se le credenziali sono errate
-     */
     @Transactional(readOnly = true)
     public LoginResponse authenticate(String email, String password) {
         Authentication authentication = authenticationManager.authenticate(
@@ -55,25 +56,17 @@ public class AuthService {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        com.gestione.ristoranti.gestione_ristoranti.auth.security.UtenteDetails userDetails =
-                (com.gestione.ristoranti.gestione_ristoranti.auth.security.UtenteDetails) authentication.getPrincipal();
-
-        String jwt = jwtUtils.generateJwtToken(authentication);
         Utente utente = utenteRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalStateException("Utente non trovato dopo autenticazione"));
 
+        if (utente.isPrimoAccesso()) {
+            return inviaOtpPrimoAccesso(utente);
+        }
+
+        String jwt = jwtUtils.generateJwtToken(authentication);
         return new LoginResponse(jwt, utente.getNome(), utente.getRuolo().getNome());
     }
 
-    /**
-     * Registra un nuovo utente con ruolo CLIENTE.
-     *
-     * @param nome     nome visualizzato
-     * @param email    email univoca
-     * @param password password in chiaro (verrà codificata con BCrypt)
-     * @return messaggio di conferma registrazione
-     * @throws IllegalStateException se l'email è già registrata
-     */
     @Transactional
     public RegisterResponse register(String nome, String email, String password) {
         if (utenteRepository.findByEmail(email).isPresent()) {
@@ -95,7 +88,7 @@ public class AuthService {
     }
 
     @Transactional
-    public RegisterResponse creaUtente(String nome, String email, String password, String nomeRuolo) {
+    public RegisterResponse creaUtente(String nome, String email, String nomeRuolo) {
         if (utenteRepository.findByEmail(email).isPresent()) {
             throw new IllegalStateException("Email già registrata: " + email);
         }
@@ -103,15 +96,51 @@ public class AuthService {
         Ruolo ruolo = ruoloRepository.findByNome(nomeRuolo.toUpperCase())
                 .orElseThrow(() -> new IllegalStateException("Ruolo non trovato: " + nomeRuolo));
 
+        String passwordTemporanea = generaPasswordCasuale(12);
+
         Utente utente = new Utente();
         utente.setNome(nome);
         utente.setEmail(email);
-        utente.setPassword(passwordEncoder.encode(password));
+        utente.setPassword(passwordEncoder.encode(passwordTemporanea));
         utente.setRuolo(ruolo);
+        utente.setPrimoAccesso(true);
 
         utenteRepository.save(utente);
 
+        emailService.inviaBenvenutoStaff(email, nome, passwordTemporanea);
+
         return new RegisterResponse("Utente creato con ruolo " + ruolo.getNome());
+    }
+
+    @Transactional
+    public LoginResponse verificaPrimoAccesso(String email, String codice) {
+        Utente utente = utenteRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato"));
+
+        if (!utente.isPrimoAccesso()) {
+            throw new IllegalStateException("Nessun primo accesso in attesa per questo account");
+        }
+        if (utente.getCodiceVerifica() == null || utente.getScadenzaCodice() == null) {
+            throw new IllegalStateException("Codice non ancora generato. Effettua prima il login.");
+        }
+        if (LocalDateTime.now().isAfter(utente.getScadenzaCodice())) {
+            throw new IllegalStateException("Il codice è scaduto. Effettua nuovamente il login per ricevere un nuovo codice.");
+        }
+        if (!utente.getCodiceVerifica().equals(codice)) {
+            throw new IllegalStateException("Codice non valido.");
+        }
+
+        utente.setPrimoAccesso(false);
+        utente.setCodiceVerifica(null);
+        utente.setScadenzaCodice(null);
+        utenteRepository.save(utente);
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                email, null,
+                List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority(
+                        "ROLE_" + utente.getRuolo().getNome())));
+        String jwt = jwtUtils.generateJwtToken(auth);
+        return new LoginResponse(jwt, utente.getNome(), utente.getRuolo().getNome());
     }
 
     @Transactional(readOnly = true)
@@ -148,5 +177,24 @@ public class AuthService {
             throw new ResourceNotFoundException("Utente non trovato con id: " + id);
         }
         utenteRepository.deleteById(id);
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+
+    private LoginResponse inviaOtpPrimoAccesso(Utente utente) {
+        String codice = String.format("%06d", RANDOM.nextInt(1_000_000));
+        utente.setCodiceVerifica(codice);
+        utente.setScadenzaCodice(LocalDateTime.now().plusMinutes(15));
+        utenteRepository.save(utente);
+        emailService.inviaCodiceVerificaPrimoAccesso(utente.getEmail(), utente.getNome(), codice);
+        return LoginResponse.forPrimoAccesso(utente.getEmail());
+    }
+
+    private String generaPasswordCasuale(int lunghezza) {
+        StringBuilder sb = new StringBuilder(lunghezza);
+        for (int i = 0; i < lunghezza; i++) {
+            sb.append(CHARS_TEMP_PWD.charAt(RANDOM.nextInt(CHARS_TEMP_PWD.length())));
+        }
+        return sb.toString();
     }
 }

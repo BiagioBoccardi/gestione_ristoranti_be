@@ -15,7 +15,6 @@ import com.gestione.ristoranti.gestione_ristoranti.staff.model.Turno;
 import com.gestione.ristoranti.gestione_ristoranti.staff.repository.TurnoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +29,6 @@ public class StaffService {
     private final UtenteRepository utenteRepository;
     private final RuoloRepository ruoloRepository;
     private final TurnoRepository turnoRepository;
-    private final PasswordEncoder passwordEncoder;
 
     // ── Staff ─────────────────────────────────────────────────────────────────
 
@@ -78,10 +76,6 @@ public class StaffService {
                     .orElseThrow(() -> new ResourceNotFoundException("Ruolo non trovato: " + req.getRuolo()));
             utente.setRuolo(ruolo);
         }
-        if (req.getNuovaPassword() != null && !req.getNuovaPassword().isBlank()) {
-            utente.setPassword(passwordEncoder.encode(req.getNuovaPassword()));
-        }
-
         return mapToStaffResponse(utenteRepository.save(utente));
     }
 

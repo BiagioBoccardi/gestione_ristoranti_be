@@ -53,7 +53,7 @@ public class AdminController {
     @PostMapping("/crea-utente")
     public ResponseEntity<RestResponse<RegisterResponse>> creaUtente(@Valid @RequestBody CreaUtenteRequest request) {
         RegisterResponse response = authService.creaUtente(
-                request.getNome(), request.getEmail(), request.getPassword(), request.getRuolo());
+                request.getNome(), request.getEmail(), request.getRuolo());
         return ResponseEntity.status(HttpStatus.CREATED).body(RestResponse.created(response));
     }
 

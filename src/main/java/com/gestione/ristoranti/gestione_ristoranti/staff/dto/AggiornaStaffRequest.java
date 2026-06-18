@@ -11,5 +11,4 @@ public class AggiornaStaffRequest {
     private String email;
 
     private String ruolo;
-    private String nuovaPassword;
 }

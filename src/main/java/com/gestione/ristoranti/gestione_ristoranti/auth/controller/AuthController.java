@@ -6,6 +6,7 @@ import com.gestione.ristoranti.gestione_ristoranti.auth.api.LoginResponse;
 import com.gestione.ristoranti.gestione_ristoranti.auth.api.RegisterRequest;
 import com.gestione.ristoranti.gestione_ristoranti.auth.api.RegisterResponse;
 import com.gestione.ristoranti.gestione_ristoranti.auth.api.ResetPasswordRequest;
+import com.gestione.ristoranti.gestione_ristoranti.auth.api.VerificaPrimoAccessoRequest;
 import com.gestione.ristoranti.gestione_ristoranti.auth.service.AuthService;
 import com.gestione.ristoranti.gestione_ristoranti.auth.service.PasswordResetService;
 import com.gestione.ristoranti.gestione_ristoranti.common.RestResponse;
@@ -90,5 +91,19 @@ public class AuthController {
     public ResponseEntity<RestResponse<String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         passwordResetService.resetPassword(request.getToken(), request.getNuovaPassword());
         return ResponseEntity.ok(RestResponse.ok("Password reimpostata con successo."));
+    }
+
+    @Operation(summary = "Verifica codice primo accesso",
+               description = "Convalida il codice OTP ricevuto via email al primo login e restituisce il JWT")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Accesso completato, JWT restituito"),
+        @ApiResponse(responseCode = "400", description = "Codice non valido o scaduto",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PostMapping("/verifica-primo-accesso")
+    public ResponseEntity<RestResponse<LoginResponse>> verificaPrimoAccesso(
+            @Valid @RequestBody VerificaPrimoAccessoRequest request) {
+        LoginResponse response = authService.verificaPrimoAccesso(request.getEmail(), request.getCodice());
+        return ResponseEntity.ok(RestResponse.ok(response));
     }
 }
