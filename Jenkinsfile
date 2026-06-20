@@ -12,6 +12,10 @@ pipeline {
         DOCKER_HUB_USERNAME = credentials('dockerhub-username')
     }
 
+    triggers {
+        pollSCM('H/3 * * * *')
+    }
+
     options {
         timestamps()
         timeout(time: 45, unit: 'MINUTES')
