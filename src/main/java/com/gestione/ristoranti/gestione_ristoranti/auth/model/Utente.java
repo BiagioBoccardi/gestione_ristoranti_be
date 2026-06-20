@@ -41,8 +41,8 @@ public class Utente {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
-    private boolean primoAccesso = false;
+    @Column(name = "primo_accesso")
+    private Boolean primoAccesso = false;
 
     @Column(name = "codice_verifica")
     private String codiceVerifica;
@@ -138,7 +138,7 @@ public class Utente {
     }
 
     public boolean isPrimoAccesso() {
-        return primoAccesso;
+        return Boolean.TRUE.equals(primoAccesso);
     }
 
     public void setPrimoAccesso(boolean primoAccesso) {
