@@ -1,3 +1,4 @@
+// test polling automatico
 pipeline {
     agent any
 
