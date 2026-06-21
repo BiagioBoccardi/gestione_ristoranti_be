@@ -68,9 +68,6 @@ export default function AppSidebar({ variant = 'dark', compact = false }: Props)
           <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-900/40 group-hover:bg-indigo-500 transition-colors">
             <UtensilsCrossed className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className={`text-sm font-semibold tracking-[0.15em] uppercase transition-colors ${textClass}`}>
-            Restora
-          </span>
           <MenuIcon className={`w-3.5 h-3.5 ml-0.5 transition-colors ${iconClass}`} />
         </button>
       )}
