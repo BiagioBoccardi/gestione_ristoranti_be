@@ -45,7 +45,6 @@ export default function AppSidebar({ variant = 'dark', compact = false }: Props)
   const location = useLocation();
   const close = () => setOpen(false);
 
-  const textClass  = variant === 'dark' ? 'text-zinc-100 group-hover:text-white'    : 'text-stone-700 group-hover:text-stone-900';
   const iconClass  = variant === 'dark' ? 'text-zinc-600 group-hover:text-zinc-400' : 'text-stone-400 group-hover:text-stone-600';
 
   return (
