@@ -44,8 +44,8 @@ vi.mock('@/components/ui/textarea', () => ({
 }));
 
 const piatti: Piatto[] = [
-  { id: 1, nome: 'Pizza Margherita', prezzo: 8.5, disponibile: true, categoriaId: 1, categoriaName: 'Pizze', immagineUrl: null, descrizione: '' },
-  { id: 2, nome: 'Pasta al Ragù', prezzo: 9.0, disponibile: true, categoriaId: 2, categoriaName: 'Primi', immagineUrl: null, descrizione: '' },
+  { id: 1, nome: 'Pizza Margherita', prezzo: 8.5, disponibile: true, categoria: { id: 1, nome: 'Pizze' } },
+  { id: 2, nome: 'Pasta al Ragù', prezzo: 9.0, disponibile: true, categoria: { id: 2, nome: 'Primi' } },
 ];
 
 describe('OrdineForm', () => {

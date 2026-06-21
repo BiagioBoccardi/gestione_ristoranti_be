@@ -28,13 +28,11 @@ export const menuService = {
   deletePiatto: (id: number): Promise<void> =>
     apiClient.delete(`/menu/piatti/${id}`).then(() => undefined),
 
-  uploadImmagine: (file: File): Promise<string> => {
-    const form = new FormData();
-    form.append('file', file);
-    return apiClient
-      .post<{ url: string }>('/menu/piatti/immagine', form, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
-      .then(r => r.data.url);
-  },
+  uploadImmagine: (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error('Lettura file fallita'));
+      reader.readAsDataURL(file);
+    }),
 };

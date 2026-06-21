@@ -188,12 +188,15 @@ export default function PrenotazioniPage() {
             </DialogTitle>
           </DialogHeader>
           <PrenotazioneForm
-            iniziale={
+            prenotazioneEsistente={
               inModifica
                 ? { ...inModifica, data: dataIniziale || inModifica.data, ora: oraIniziale || inModifica.ora }
-                : dataIniziale
-                  ? { data: dataIniziale, ora: oraIniziale } as any
-                  : undefined
+                : undefined
+            }
+            datiPrecompilati={
+              !inModifica && dataIniziale
+                ? { data: dataIniziale, ora: oraIniziale }
+                : undefined
             }
             onSubmit={handleSubmit}
             onAnnulla={() => { setShowForm(false); setInModifica(null); }}

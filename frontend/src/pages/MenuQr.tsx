@@ -15,6 +15,7 @@ export default function MenuQrPage() {
   const [carrello, setCarrello] = useState<CarrelloItem[]>([]);
   const [fase, setFase] = useState<Fase>('menu');
   const [invio, setInvio] = useState(false);
+  const [invioErrore, setInvioErrore] = useState<string | null>(null);
   const [categoriaAttiva, setCategoriaAttiva] = useState<number | null>(null);
 
   useEffect(() => {
@@ -55,6 +56,7 @@ export default function MenuQrPage() {
   async function inviaOrdine() {
     if (!token || !menu || carrello.length === 0) return;
     setInvio(true);
+    setInvioErrore(null);
     try {
       await qrService.creaOrdineQr(token, {
         tavoloId: menu.tavoloId,
@@ -63,7 +65,7 @@ export default function MenuQrPage() {
       setCarrello([]);
       setFase('conferma');
     } catch {
-      alert('Errore durante l\'invio dell\'ordine. Riprova.');
+      setInvioErrore('Errore durante l\'invio dell\'ordine. Riprova.');
     } finally {
       setInvio(false);
     }
@@ -237,6 +239,11 @@ export default function MenuQrPage() {
               <span className="font-medium">Totale</span>
               <span className="text-lg font-semibold">€{totale.toFixed(2)}</span>
             </div>
+            {invioErrore && (
+              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-center">
+                {invioErrore}
+              </p>
+            )}
             <button
               onClick={inviaOrdine}
               disabled={invio}

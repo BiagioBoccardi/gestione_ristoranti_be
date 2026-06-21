@@ -105,7 +105,7 @@ pipeline {
                         passwordVariable: 'DOCKER_HUB_PASSWORD'
                     )
                 ]) {
-                    bat 'docker compose build --pull'
+                    bat 'docker compose -f docker-compose.dev.yml build --pull'
                 }
             }
         }

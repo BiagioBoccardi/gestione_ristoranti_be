@@ -2,7 +2,7 @@ import apiClient from '@/components/ApiClient';
 import type { Ordine, OrdinePayload, OrdineUpdatePayload, StatoOrdine } from '@/types/ordine';
 
 export const ordineService = {
-  getOrdini: (params?: { stato?: StatoOrdine; tavoloId?: number }): Promise<Ordine[]> =>
+  getOrdini: (params?: { stato?: StatoOrdine }): Promise<Ordine[]> =>
     apiClient.get<Ordine[]>('/ordini', { params }).then(r => r.data),
 
   getOrdine: (id: number): Promise<Ordine> =>

@@ -5,12 +5,18 @@ import type { Tavolo } from '@/types/ordine';
 import type { Prenotazione, PrenotazionePayload } from '@/types/prenotazione';
 
 interface PrenotazioneFormProps {
-  iniziale?: Prenotazione;
+  prenotazioneEsistente?: Prenotazione;
+  datiPrecompilati?: { data?: string; ora?: string };
   onSubmit: (data: PrenotazionePayload) => Promise<void>;
   onAnnulla: () => void;
 }
 
-export default function PrenotazioneForm({ iniziale, onSubmit, onAnnulla }: PrenotazioneFormProps) {
+export default function PrenotazioneForm({
+  prenotazioneEsistente,
+  datiPrecompilati,
+  onSubmit,
+  onAnnulla,
+}: PrenotazioneFormProps) {
   const [tavoli, setTavoli] = useState<Tavolo[]>([]);
   const [loading, setLoading] = useState(false);
   const [errore, setErrore] = useState<string | null>(null);
@@ -18,11 +24,11 @@ export default function PrenotazioneForm({ iniziale, onSubmit, onAnnulla }: Pren
   const oggi = new Date().toISOString().split('T')[0];
 
   const [form, setForm] = useState<PrenotazionePayload>({
-    tavoloId: iniziale?.tavoloId ?? 0,
-    data: iniziale?.data ?? '',
-    ora: iniziale?.ora?.substring(0, 5) ?? '',
-    coperti: iniziale?.coperti ?? 2,
-    note: iniziale?.note ?? '',
+    tavoloId: prenotazioneEsistente?.tavoloId ?? 0,
+    data: prenotazioneEsistente?.data ?? datiPrecompilati?.data ?? '',
+    ora: prenotazioneEsistente?.ora?.substring(0, 5) ?? datiPrecompilati?.ora ?? '',
+    coperti: prenotazioneEsistente?.coperti ?? 2,
+    note: prenotazioneEsistente?.note ?? '',
   });
 
   useEffect(() => {
@@ -132,7 +138,7 @@ export default function PrenotazioneForm({ iniziale, onSubmit, onAnnulla }: Pren
           Annulla
         </Button>
         <Button type="submit" disabled={loading} className="flex-1">
-          {loading ? 'Salvataggio...' : iniziale ? 'Aggiorna' : 'Prenota'}
+          {loading ? 'Salvataggio...' : prenotazioneEsistente ? 'Aggiorna' : 'Prenota'}
         </Button>
       </div>
     </form>

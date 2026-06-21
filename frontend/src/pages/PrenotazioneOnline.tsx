@@ -9,8 +9,9 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
-  CalendarDays, Plus, X, Trash2, Loader2, LogOut, Clock, Users,
+  CalendarDays, Plus, Trash2, Loader2, LogOut, Clock, Users,
 } from 'lucide-react';
 
 interface PrenotazioneForm {
@@ -157,90 +158,85 @@ export default function PrenotazioneOnlinePage() {
         </div>
 
         {/* Modal form */}
-        {showForm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-            <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-7 w-full max-w-md shadow-2xl">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-base font-semibold text-zinc-100">Nuova prenotazione</h2>
-                <button onClick={() => setShowForm(false)} className="text-zinc-500 hover:text-zinc-200 transition-colors">
-                  <X className="w-4 h-4" />
-                </button>
+        <Dialog.Root open={showForm} onOpenChange={(o: boolean) => { if (!o) setShowForm(false); }}>
+          <DialogContent className="bg-zinc-900 border border-zinc-700 text-zinc-100 max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-base font-semibold text-zinc-100">Nuova prenotazione</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={salva} className="flex flex-col gap-4">
+              <div>
+                <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Tavolo</Label>
+                <select
+                  value={form.tavoloId}
+                  onChange={e => setForm(f => ({ ...f, tavoloId: Number(e.target.value) }))}
+                  required
+                  className="w-full h-10 px-3 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-100 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                >
+                  {tavoli.map(t => (
+                    <option key={t.id} value={t.id}>
+                      Tavolo {t.numero} ({t.capacita} posti)
+                    </option>
+                  ))}
+                </select>
               </div>
-              <form onSubmit={salva} className="flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Tavolo</Label>
-                  <select
-                    value={form.tavoloId}
-                    onChange={e => setForm(f => ({ ...f, tavoloId: Number(e.target.value) }))}
-                    required
-                    className="w-full h-10 px-3 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-100 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  >
-                    {tavoli.map(t => (
-                      <option key={t.id} value={t.id}>
-                        Tavolo {t.numero} ({t.capacita} posti)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Data</Label>
-                    <Input
-                      type="date"
-                      value={form.data}
-                      min={today}
-                      onChange={e => setForm(f => ({ ...f, data: e.target.value }))}
-                      required
-                      className="bg-zinc-800 border-zinc-700 text-zinc-100 rounded-lg [color-scheme:dark]"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Ora</Label>
-                    <Input
-                      type="time"
-                      value={form.ora}
-                      onChange={e => setForm(f => ({ ...f, ora: e.target.value }))}
-                      required
-                      className="bg-zinc-800 border-zinc-700 text-zinc-100 rounded-lg [color-scheme:dark]"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Coperti</Label>
+                  <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Data</Label>
                   <Input
-                    type="number"
-                    min={1}
-                    max={20}
-                    value={form.coperti}
-                    onChange={e => setForm(f => ({ ...f, coperti: Number(e.target.value) }))}
+                    type="date"
+                    value={form.data}
+                    min={today}
+                    onChange={e => setForm(f => ({ ...f, data: e.target.value }))}
                     required
-                    className="bg-zinc-800 border-zinc-700 text-zinc-100 rounded-lg"
+                    className="bg-zinc-800 border-zinc-700 text-zinc-100 rounded-lg [color-scheme:dark]"
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Note (opzionale)</Label>
+                  <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Ora</Label>
                   <Input
-                    value={form.note}
-                    onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
-                    placeholder="Es. allergie, richieste speciali…"
-                    className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 rounded-lg"
+                    type="time"
+                    value={form.ora}
+                    onChange={e => setForm(f => ({ ...f, ora: e.target.value }))}
+                    required
+                    className="bg-zinc-800 border-zinc-700 text-zinc-100 rounded-lg [color-scheme:dark]"
                   />
                 </div>
-                <div className="flex gap-3 mt-2">
-                  <Button type="button" variant="ghost" onClick={() => setShowForm(false)}
-                    className="flex-1 border border-zinc-700 text-zinc-400 hover:text-zinc-200 rounded-lg">
-                    Annulla
-                  </Button>
-                  <Button type="submit" disabled={saving}
-                    className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg">
-                    {saving && <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />}
-                    Conferma
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+              </div>
+              <div>
+                <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Coperti</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={form.coperti}
+                  onChange={e => setForm(f => ({ ...f, coperti: Number(e.target.value) }))}
+                  required
+                  className="bg-zinc-800 border-zinc-700 text-zinc-100 rounded-lg"
+                />
+              </div>
+              <div>
+                <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Note (opzionale)</Label>
+                <Input
+                  value={form.note}
+                  onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
+                  placeholder="Es. allergie, richieste speciali…"
+                  className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 rounded-lg"
+                />
+              </div>
+              <div className="flex gap-3 mt-2">
+                <Button type="button" variant="ghost" onClick={() => setShowForm(false)}
+                  className="flex-1 border border-zinc-700 text-zinc-400 hover:text-zinc-200 rounded-lg">
+                  Annulla
+                </Button>
+                <Button type="submit" disabled={saving}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg">
+                  {saving && <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />}
+                  Conferma
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog.Root>
 
         {loading ? (
           <div className="flex items-center justify-center h-40 gap-2 text-zinc-500">

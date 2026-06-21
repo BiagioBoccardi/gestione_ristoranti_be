@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ristorante AI Assistant</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f0f0f;
+      color: #e4e4e7;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      width: 100%;
+      max-width: 720px;
+      padding: 1.5rem 1rem 1rem;
+    }
+    header h1 { font-size: 1.1rem; font-weight: 600; color: #fafaf9; }
+    header p  { font-size: 0.75rem; color: #71717a; margin-top: 0.2rem; }
+    #chat {
+      flex: 1;
+      width: 100%;
+      max-width: 720px;
+      overflow-y: auto;
+      padding: 0 1rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .msg {
+      padding: 0.65rem 0.9rem;
+      border-radius: 0.75rem;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      max-width: 88%;
+      white-space: pre-wrap;
+    }
+    .msg.user {
+      align-self: flex-end;
+      background: #27272a;
+      color: #fafaf9;
+    }
+    .msg.assistant {
+      align-self: flex-start;
+      background: #18181b;
+      border: 1px solid #27272a;
+      color: #d4d4d8;
+    }
+    .msg.error {
+      align-self: flex-start;
+      background: #1c0a0a;
+      border: 1px solid #7f1d1d;
+      color: #fca5a5;
+    }
+    .typing { color: #52525b; font-style: italic; font-size: 0.8rem; }
+    form {
+      width: 100%;
+      max-width: 720px;
+      padding: 0.75rem 1rem 1.25rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+    input {
+      flex: 1;
+      padding: 0.6rem 0.9rem;
+      background: #18181b;
+      border: 1px solid #3f3f46;
+      border-radius: 0.6rem;
+      color: #fafaf9;
+      font-size: 0.875rem;
+      outline: none;
+    }
+    input:focus { border-color: #6366f1; }
+    button {
+      padding: 0.6rem 1.1rem;
+      background: #6366f1;
+      border: none;
+      border-radius: 0.6rem;
+      color: #fff;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 0 1rem 0.75rem;
+      width: 100%;
+      max-width: 720px;
+    }
+    .chip {
+      padding: 0.35rem 0.75rem;
+      background: #18181b;
+      border: 1px solid #3f3f46;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      color: #a1a1aa;
+      cursor: pointer;
+    }
+    .chip:hover { border-color: #6366f1; color: #e0e7ff; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Ristorante AI Assistant</h1>
+    <p>Chiedi informazioni sui KPI, ordini o piatti più venduti</p>
+  </header>
+
+  <div id="chat"></div>
+
+  <div class="suggestions">
+    <span class="chip" onclick="ask(this.textContent)">Quali sono i KPI del ristorante?</span>
+    <span class="chip" onclick="ask(this.textContent)">Quali sono i 5 piatti più venduti?</span>
+    <span class="chip" onclick="ask(this.textContent)">Mostrami gli ordini in attesa</span>
+    <span class="chip" onclick="ask(this.textContent)">Dammi un riassunto delle performance</span>
+  </div>
+
+  <form id="form">
+    <input id="input" type="text" placeholder="Es. Qual è il fatturato di oggi?" autocomplete="off" />
+    <button id="btn" type="submit">Invia</button>
+  </form>
+
+  <script>
+    const chat = document.getElementById('chat');
+    const input = document.getElementById('input');
+    const btn = document.getElementById('btn');
+
+    function addMsg(text, role) {
+      const div = document.createElement('div');
+      div.className = `msg ${role}`;
+      div.textContent = text;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+      return div;
+    }
+
+    async function ask(text) {
+      if (!text.trim()) return;
+      addMsg(text, 'user');
+      input.value = '';
+      btn.disabled = true;
+      const typing = addMsg('…', 'assistant typing');
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text }),
+        });
+        const data = await res.json();
+        typing.remove();
+        if (!res.ok) {
+          addMsg('Errore: ' + (data.detail || 'risposta non valida'), 'error');
+        } else {
+          addMsg(data.response, 'assistant');
+        }
+      } catch (e) {
+        typing.remove();
+        addMsg('Errore di rete. Verifica che il backend sia raggiungibile.', 'error');
+      } finally {
+        btn.disabled = false;
+        input.focus();
+      }
+    }
+
+    document.getElementById('form').addEventListener('submit', e => {
+      e.preventDefault();
+      ask(input.value);
+    });
+  </script>
+</body>
+</html>

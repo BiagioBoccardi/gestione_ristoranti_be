@@ -1,6 +1,5 @@
 services:
 
-  # ── DATABASE ────────────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
@@ -23,9 +22,10 @@ services:
           memory: 512m
           cpus: '0.5'
 
-  # ── BACKEND ─────────────────────────────────────────────────────────────────
   backend:
     image: ${DOCKER_HUB_USERNAME}/gestione-ristorante-backend:latest
+    build:
+      context: .
     restart: unless-stopped
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/gestione_ristorante
@@ -48,9 +48,12 @@ services:
           memory: 1024m
           cpus: '1.0'
 
-  # ── FRONTEND ────────────────────────────────────────────────────────────────
   frontend:
     image: ${DOCKER_HUB_USERNAME}/gestione-ristorante-frontend:latest
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: /api
     restart: unless-stopped
     ports:
       - "80:80"
@@ -64,7 +67,6 @@ services:
           memory: 128m
           cpus: '0.25'
 
-  # ── OBSERVABILITY ───────────────────────────────────────────────────────────
   prometheus:
     image: prom/prometheus:v2.51.2
     restart: unless-stopped

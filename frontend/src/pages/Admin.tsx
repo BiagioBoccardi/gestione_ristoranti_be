@@ -7,9 +7,10 @@ import { useToast } from '@/context/ToastContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAuth } from '@/context/AuthContext';
 import {
-  Users, Trash2, RefreshCw, Plus, X, Loader2, LogOut, ShieldCheck,
+  Users, Trash2, RefreshCw, Plus, Loader2, LogOut, ShieldCheck,
 } from 'lucide-react';
 
 const RUOLI = ['ADMIN', 'CAMERIERE', 'CUOCO', 'CLIENTE'];
@@ -147,56 +148,51 @@ export default function AdminPage() {
         </div>
 
         {/* Modal crea utente */}
-        {showCrea && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-            <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-7 w-full max-w-md shadow-2xl">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-base font-semibold text-zinc-100">Nuovo Utente</h2>
-                <button onClick={() => setShowCrea(false)} className="text-zinc-500 hover:text-zinc-200 transition-colors">
-                  <X className="w-4 h-4" />
-                </button>
+        <Dialog.Root open={showCrea} onOpenChange={(o: boolean) => { if (!o) setShowCrea(false); }}>
+          <DialogContent className="bg-zinc-900 border border-zinc-700 text-zinc-100 max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-base font-semibold text-zinc-100">Nuovo Utente</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={creaUtente} className="flex flex-col gap-4">
+              <div>
+                <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Nome</Label>
+                <Input value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))}
+                  placeholder="Mario Rossi" required
+                  className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 rounded-lg" />
               </div>
-              <form onSubmit={creaUtente} className="flex flex-col gap-4">
-                <div>
-                  <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Nome</Label>
-                  <Input value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))}
-                    placeholder="Mario Rossi" required
-                    className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 rounded-lg" />
-                </div>
-                <div>
-                  <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Email</Label>
-                  <Input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                    placeholder="mario@restora.it" required
-                    className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 rounded-lg" />
-                </div>
-                <div>
-                  <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Password</Label>
-                  <Input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                    placeholder="••••••••" required minLength={6}
-                    className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 rounded-lg" />
-                </div>
-                <div>
-                  <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Ruolo</Label>
-                  <select value={form.ruolo} onChange={e => setForm(f => ({ ...f, ruolo: e.target.value }))}
-                    className="w-full h-10 px-3 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-100 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                    {RUOLI.map(r => <option key={r} value={r}>{r}</option>)}
-                  </select>
-                </div>
-                <div className="flex gap-3 mt-2">
-                  <Button type="button" variant="ghost" onClick={() => setShowCrea(false)}
-                    className="flex-1 border border-zinc-700 text-zinc-400 hover:text-zinc-200 rounded-lg">
-                    Annulla
-                  </Button>
-                  <Button type="submit" disabled={creaLoading}
-                    className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg">
-                    {creaLoading && <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />}
-                    Crea
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+              <div>
+                <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Email</Label>
+                <Input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                  placeholder="mario@restora.it" required
+                  className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 rounded-lg" />
+              </div>
+              <div>
+                <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Password</Label>
+                <Input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                  placeholder="••••••••" required minLength={6}
+                  className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 rounded-lg" />
+              </div>
+              <div>
+                <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Ruolo</Label>
+                <select value={form.ruolo} onChange={e => setForm(f => ({ ...f, ruolo: e.target.value }))}
+                  className="w-full h-10 px-3 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-100 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                  {RUOLI.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </div>
+              <div className="flex gap-3 mt-2">
+                <Button type="button" variant="ghost" onClick={() => setShowCrea(false)}
+                  className="flex-1 border border-zinc-700 text-zinc-400 hover:text-zinc-200 rounded-lg">
+                  Annulla
+                </Button>
+                <Button type="submit" disabled={creaLoading}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg">
+                  {creaLoading && <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />}
+                  Crea
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog.Root>
 
         {/* Tabella utenti */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
