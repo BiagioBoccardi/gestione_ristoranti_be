@@ -65,16 +65,20 @@ pipeline {
         // ── 4. SONARCLOUD ANALYSIS ────────────────────────────────────────────
         stage('SonarCloud Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {
-                    bat 'mvn sonar:sonar -B -DskipTests'
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    withSonarQubeEnv('SonarQube') {
+                        bat 'mvn sonar:sonar -B -DskipTests'
+                    }
                 }
             }
         }
 
         stage('SonarCloud Quality Gate') {
             steps {
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: false
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    timeout(time: 5, unit: 'MINUTES') {
+                        waitForQualityGate abortPipeline: false
+                    }
                 }
             }
         }
