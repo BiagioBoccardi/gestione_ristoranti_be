@@ -36,13 +36,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
+    private static String sanitizeForLog(Object value) {
+        if (value == null) return "null";
+        return String.valueOf(value).replaceAll("[\r\n\t]", "_");
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> fieldErrors = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(error -> {
-            log.warn("[VALIDAZIONE] endpoint={} campo='{}' valore_ricevuto='{}' motivo='{}'",
+            log.warn("[VALIDAZIONE] endpoint={} campo={} valore_ricevuto={} motivo={}",
                     ex.getParameter().getMethod() != null ? ex.getParameter().getMethod().getName() : "?",
-                    error.getField(), error.getRejectedValue(), error.getDefaultMessage());
+                    error.getField(), sanitizeForLog(error.getRejectedValue()), error.getDefaultMessage());
             fieldErrors.put(error.getField(), error.getDefaultMessage());
         });
         ErrorResponse body = new ErrorResponse(

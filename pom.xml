@@ -26,6 +26,29 @@
         <sonar.tests>src/test/java</sonar.tests>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <!-- Escludi dal calcolo coverage classi non testabili (DTO, model, config, eccezioni, main) -->
+        <sonar.coverage.exclusions>
+            **/*Request.java,
+            **/*Response.java,
+            **/config/**,
+            **/exception/ConflictException.java,
+            **/exception/ResourceNotFoundException.java,
+            **/exception/ErrorResponse.java,
+            **/common/RestResponse.java,
+            **/auth/model/**,
+            **/auth/api/**,
+            **/ricette/model/**,
+            **/staff/model/**,
+            **/GestioneRistorantiApplication.java
+        </sonar.coverage.exclusions>
+        <!-- Escludi dal calcolo duplicazioni le classi strutturalmente simili per design -->
+        <sonar.cpd.exclusions>
+            **/*Request.java,
+            **/*Response.java,
+            **/auth/model/**,
+            **/ricette/model/**,
+            **/staff/model/**
+        </sonar.cpd.exclusions>
     </properties>
 
     <dependencies>
@@ -175,6 +198,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.15</version>
                 <executions>
                     <execution>
                         <goals><goal>prepare-agent</goal></goals>

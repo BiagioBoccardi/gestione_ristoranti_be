@@ -27,7 +27,7 @@ public class DataInitializer implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
-    @Value("${ADMIN_DEFAULT_PASSWORD:password123}")
+    @Value("${ADMIN_DEFAULT_PASSWORD}")
     private String adminDefaultPassword;
 
     private final RuoloRepository ruoloRepository;
