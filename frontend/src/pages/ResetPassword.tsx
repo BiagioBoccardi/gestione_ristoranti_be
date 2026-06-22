@@ -1,10 +1,24 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { z } from 'zod';
 import { authService } from '@/services/authService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { UtensilsCrossed, Loader2, Eye, EyeOff, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
+
+const passwordSchema = z.object({
+  password: z.string()
+    .min(8, 'Minimo 8 caratteri')
+    .regex(/[A-Z]/, 'Almeno una lettera maiuscola')
+    .regex(/[0-9]/, 'Almeno un numero'),
+  confirm: z.string(),
+}).refine(data => data.password === data.confirm, {
+  message: 'Le password non coincidono',
+  path: ['confirm'],
+});
+
+type FieldErrors = { password?: string; confirm?: string };
 
 export default function ResetPasswordPage() {
   const [searchParams]          = useSearchParams();
@@ -17,12 +31,26 @@ export default function ResetPasswordPage() {
   const [loading,  setLoading]  = useState(false);
   const [done,     setDone]     = useState(false);
   const [error,    setError]    = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
-  const mismatch = confirm.length > 0 && password !== confirm;
+  const validate = (): boolean => {
+    const result = passwordSchema.safeParse({ password, confirm });
+    if (!result.success) {
+      const errs: FieldErrors = {};
+      for (const issue of result.error.issues) {
+        const field = issue.path[0] as keyof FieldErrors;
+        if (!errs[field]) errs[field] = issue.message;
+      }
+      setFieldErrors(errs);
+      return false;
+    }
+    setFieldErrors({});
+    return true;
+  };
 
   const onSubmit = async (e: { preventDefault(): void }) => {
     e.preventDefault();
-    if (mismatch) return;
+    if (!validate()) return;
     setLoading(true);
     setError('');
     try {
@@ -69,9 +97,9 @@ export default function ResetPasswordPage() {
               <CheckCircle2 className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-zinc-100 mb-2">Password aggiornata</h1>
+              <h1 className="text-xl font-semibold text-zinc-100 mb-2">Password impostata</h1>
               <p className="text-sm text-zinc-400 font-light leading-relaxed">
-                La tua password è stata reimpostata con successo.
+                La tua password è stata impostata con successo.
                 Verrai reindirizzato al login tra pochi secondi.
               </p>
             </div>
@@ -83,17 +111,17 @@ export default function ResetPasswordPage() {
           <>
             <div className="mb-8">
               <h1 className="text-2xl font-semibold text-zinc-100 tracking-tight mb-1.5">
-                Nuova password
+                Imposta password
               </h1>
               <p className="text-sm text-zinc-500 font-light">
-                Scegli una nuova password per il tuo account.
+                Scegli una password sicura per il tuo account.
               </p>
             </div>
 
             <form onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="password" className="text-xs tracking-widest uppercase text-zinc-400 font-semibold">
-                  Nuova password
+                  Password
                 </Label>
                 <div className="relative">
                   <Input
@@ -102,11 +130,10 @@ export default function ResetPasswordPage() {
                     autoComplete="new-password"
                     placeholder="••••••••"
                     value={password}
-                    onChange={e => setPassword(e.target.value)}
+                    onChange={e => { setPassword(e.target.value); setFieldErrors(f => ({ ...f, password: undefined })); }}
                     disabled={loading}
                     required
-                    minLength={6}
-                    className="h-11 pr-10 bg-zinc-900 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-lg"
+                    className={`h-11 pr-10 bg-zinc-900 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-lg ${fieldErrors.password ? 'border-red-700 focus-visible:ring-red-600' : ''}`}
                   />
                   <button
                     type="button"
@@ -117,7 +144,11 @@ export default function ResetPasswordPage() {
                     {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                <p className="text-xs text-zinc-600">Minimo 6 caratteri</p>
+                {fieldErrors.password ? (
+                  <p className="text-xs text-red-400">{fieldErrors.password}</p>
+                ) : (
+                  <p className="text-xs text-zinc-600">Minimo 8 caratteri, una maiuscola e un numero</p>
+                )}
               </div>
 
               <div className="flex flex-col gap-1.5">
@@ -130,13 +161,13 @@ export default function ResetPasswordPage() {
                   autoComplete="new-password"
                   placeholder="••••••••"
                   value={confirm}
-                  onChange={e => setConfirm(e.target.value)}
+                  onChange={e => { setConfirm(e.target.value); setFieldErrors(f => ({ ...f, confirm: undefined })); }}
                   disabled={loading}
                   required
-                  className={`h-11 bg-zinc-900 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-lg ${mismatch ? 'border-red-700 focus-visible:ring-red-600' : ''}`}
+                  className={`h-11 bg-zinc-900 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-lg ${fieldErrors.confirm ? 'border-red-700 focus-visible:ring-red-600' : ''}`}
                 />
-                {mismatch && (
-                  <p className="text-xs text-red-400">Le password non coincidono</p>
+                {fieldErrors.confirm && (
+                  <p className="text-xs text-red-400">{fieldErrors.confirm}</p>
                 )}
               </div>
 
@@ -148,11 +179,11 @@ export default function ResetPasswordPage() {
 
               <Button
                 type="submit"
-                disabled={loading || !password || !confirm || mismatch}
+                disabled={loading || !password || !confirm}
                 className="w-full bg-indigo-600 hover:bg-indigo-500 text-white tracking-widest uppercase text-xs font-semibold h-11 rounded-lg"
               >
                 {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                {loading ? 'Salvataggio…' : 'Reimposta password'}
+                {loading ? 'Salvataggio…' : 'Imposta password'}
               </Button>
 
               <Link

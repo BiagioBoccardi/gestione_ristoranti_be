@@ -21,7 +21,6 @@ export default function UtenteForm({ open, onClose, onSaved, utente }: Props) {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [ruolo, setRuolo] = useState('CAMERIERE');
-  const [password, setPassword] = useState('');
   const [nuovaPassword, setNuovaPassword] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -31,7 +30,6 @@ export default function UtenteForm({ open, onClose, onSaved, utente }: Props) {
       setNome(utente?.nome ?? '');
       setEmail(utente?.email ?? '');
       setRuolo(utente?.ruolo ?? 'CAMERIERE');
-      setPassword('');
       setNuovaPassword('');
       setError('');
     }
@@ -41,10 +39,6 @@ export default function UtenteForm({ open, onClose, onSaved, utente }: Props) {
     setError('');
     if (!nome.trim() || !email.trim()) {
       setError('Nome ed email sono obbligatori');
-      return;
-    }
-    if (!isEdit && !password.trim()) {
-      setError('La password è obbligatoria per i nuovi membri');
       return;
     }
 
@@ -61,7 +55,6 @@ export default function UtenteForm({ open, onClose, onSaved, utente }: Props) {
         await staffService.creaUtente({
           nome: nome.trim(),
           email: email.trim(),
-          password: password.trim(),
           ruolo,
         });
       }
@@ -125,16 +118,9 @@ export default function UtenteForm({ open, onClose, onSaved, utente }: Props) {
           </div>
 
           {!isEdit ? (
-            <div className="space-y-1.5">
-              <Label htmlFor="sf-password">Password</Label>
-              <Input
-                id="sf-password"
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
-              />
-            </div>
+            <p className="text-xs text-stone-500 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2">
+              Verrà inviata un'email all'utente con un link per impostare la propria password.
+            </p>
           ) : (
             <div className="space-y-1.5">
               <Label htmlFor="sf-nuovaPassword">

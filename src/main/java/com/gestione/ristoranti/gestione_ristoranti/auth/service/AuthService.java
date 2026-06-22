@@ -3,14 +3,17 @@ package com.gestione.ristoranti.gestione_ristoranti.auth.service;
 import com.gestione.ristoranti.gestione_ristoranti.auth.api.LoginResponse;
 import com.gestione.ristoranti.gestione_ristoranti.auth.api.RegisterResponse;
 import com.gestione.ristoranti.gestione_ristoranti.auth.api.UtenteResponse;
+import com.gestione.ristoranti.gestione_ristoranti.auth.model.PasswordResetToken;
 import com.gestione.ristoranti.gestione_ristoranti.auth.model.Ruolo;
 import com.gestione.ristoranti.gestione_ristoranti.auth.model.Utente;
+import com.gestione.ristoranti.gestione_ristoranti.auth.repository.PasswordResetTokenRepository;
 import com.gestione.ristoranti.gestione_ristoranti.auth.repository.RuoloRepository;
 import com.gestione.ristoranti.gestione_ristoranti.auth.repository.UtenteRepository;
 import com.gestione.ristoranti.gestione_ristoranti.auth.security.JwtUtils;
 import com.gestione.ristoranti.gestione_ristoranti.exception.ResourceNotFoundException;
 import com.gestione.ristoranti.gestione_ristoranti.prenotazioni.service.EmailService;
 import com.gestione.ristoranti.gestione_ristoranti.staff.repository.TurnoRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,12 +25,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class AuthService {
 
-    private static final String CHARS_TEMP_PWD = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final SecureRandom RANDOM = new SecureRandom();
+
+    @Value("${app.base-url}")
+    private String baseUrl;
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
@@ -36,6 +42,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final TurnoRepository turnoRepository;
+    private final PasswordResetTokenRepository tokenRepository;
 
     public AuthService(AuthenticationManager authenticationManager,
                        JwtUtils jwtUtils,
@@ -43,7 +50,8 @@ public class AuthService {
                        RuoloRepository ruoloRepository,
                        PasswordEncoder passwordEncoder,
                        EmailService emailService,
-                       TurnoRepository turnoRepository) {
+                       TurnoRepository turnoRepository,
+                       PasswordResetTokenRepository tokenRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
         this.utenteRepository = utenteRepository;
@@ -51,6 +59,7 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.turnoRepository = turnoRepository;
+        this.tokenRepository = tokenRepository;
     }
 
     @Transactional(readOnly = true)
@@ -100,20 +109,25 @@ public class AuthService {
         Ruolo ruolo = ruoloRepository.findByNome(nomeRuolo.toUpperCase())
                 .orElseThrow(() -> new IllegalStateException("Ruolo non trovato: " + nomeRuolo));
 
-        String passwordTemporanea = generaPasswordCasuale(12);
-
         Utente utente = new Utente();
         utente.setNome(nome);
         utente.setEmail(email);
-        utente.setPassword(passwordEncoder.encode(passwordTemporanea));
+        utente.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
         utente.setRuolo(ruolo);
-        utente.setPrimoAccesso(true);
+        utente.setPrimoAccesso(false);
 
         utenteRepository.save(utente);
 
-        emailService.inviaBenvenutoStaff(email, nome, passwordTemporanea);
+        tokenRepository.deleteByUtenteId(utente.getId());
+        String token = UUID.randomUUID().toString();
+        PasswordResetToken resetToken = new PasswordResetToken(
+                token, utente, LocalDateTime.now().plusHours(24));
+        tokenRepository.save(resetToken);
 
-        return new RegisterResponse("Utente creato con ruolo " + ruolo.getNome());
+        String link = baseUrl + "/reset-password?token=" + token;
+        emailService.inviaImpostaPassword(email, nome, link);
+
+        return new RegisterResponse("Utente creato. Email di impostazione password inviata a " + email);
     }
 
     @Transactional
@@ -195,11 +209,4 @@ public class AuthService {
         return LoginResponse.forPrimoAccesso(utente.getEmail());
     }
 
-    private String generaPasswordCasuale(int lunghezza) {
-        StringBuilder sb = new StringBuilder(lunghezza);
-        for (int i = 0; i < lunghezza; i++) {
-            sb.append(CHARS_TEMP_PWD.charAt(RANDOM.nextInt(CHARS_TEMP_PWD.length())));
-        }
-        return sb.toString();
-    }
 }

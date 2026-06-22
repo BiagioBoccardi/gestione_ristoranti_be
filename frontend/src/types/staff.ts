@@ -21,7 +21,6 @@ export interface TurnoItem {
 export interface CreaUtentePayload {
   nome: string;
   email: string;
-  password: string;
   ruolo: string;
 }
 

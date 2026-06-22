@@ -186,6 +186,59 @@ public class EmailService {
     }
 
     @Async
+    public void inviaImpostaPassword(String toEmail, String nomeUtente, String link) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(mittente, nomeMittente);
+            helper.setTo(toEmail);
+            helper.setSubject("Imposta la tua password — " + nomeMittente);
+            String html = """
+                    <!DOCTYPE html>
+                    <html lang="it">
+                    <head><meta charset="UTF-8"></head>
+                    <body style="margin:0;padding:0;background:#09090b;font-family:sans-serif;">
+                      <table width="100%%" cellpadding="0" cellspacing="0">
+                        <tr><td align="center" style="padding:40px 20px;">
+                          <table width="480" cellpadding="0" cellspacing="0"
+                                 style="background:#18181b;border:1px solid #27272a;border-radius:16px;padding:40px;">
+                            <tr><td>
+                              <p style="color:#818cf8;font-size:12px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;margin:0 0 24px;">
+                                %s
+                              </p>
+                              <h1 style="color:#f4f4f5;font-size:22px;font-weight:600;margin:0 0 12px;">
+                                Il tuo account è pronto
+                              </h1>
+                              <p style="color:#a1a1aa;font-size:14px;line-height:1.6;margin:0 0 28px;">
+                                Ciao %s,<br><br>
+                                Un account è stato creato per te su <strong style="color:#f4f4f5;">%s</strong>.
+                                Clicca il pulsante qui sotto per impostare la tua password e accedere.
+                                Il link è valido per <strong style="color:#f4f4f5;">24 ore</strong>.
+                              </p>
+                              <a href="%s"
+                                 style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;
+                                        padding:14px 32px;border-radius:10px;font-size:14px;font-weight:600;
+                                        letter-spacing:0.02em;">
+                                Imposta Password
+                              </a>
+                              <p style="color:#52525b;font-size:12px;margin:28px 0 0;line-height:1.6;">
+                                Se non ti aspettavi questa email, contatta l'amministratore e ignora questo messaggio.
+                              </p>
+                            </td></tr>
+                          </table>
+                        </td></tr>
+                      </table>
+                    </body>
+                    </html>
+                    """.formatted(nomeMittente, nomeUtente, nomeMittente, link);
+            helper.setText(html, true);
+            mailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Errore invio email imposta password: " + e.getMessage(), e);
+        }
+    }
+
+    @Async
     public void inviaResetPassword(String toEmail, String nomeUtente, String resetLink) {
         try {
             MimeMessage message = mailSender.createMimeMessage();

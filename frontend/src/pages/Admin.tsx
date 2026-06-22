@@ -26,7 +26,6 @@ const BADGE: Record<string, string> = {
 interface CreaForm {
   nome: string;
   email: string;
-  password: string;
   ruolo: string;
 }
 
@@ -40,7 +39,7 @@ export default function AdminPage() {
   const [deleting, setDeleting] = useState<number | null>(null);
   const [showCrea, setShowCrea] = useState(false);
   const [creaLoading, setCreaLoading] = useState(false);
-  const [form, setForm] = useState<CreaForm>({ nome: '', email: '', password: '', ruolo: 'CAMERIERE' });
+  const [form, setForm] = useState<CreaForm>({ nome: '', email: '', ruolo: 'CAMERIERE' });
 
   const carica = async () => {
     setLoading(true);
@@ -96,12 +95,11 @@ export default function AdminPage() {
       await staffService.creaUtente({
         nome: form.nome,
         email: form.email,
-        password: form.password,
         ruolo: form.ruolo,
       });
-      toast.success(`Utente ${form.email} creato.`);
+      toast.success(`Utente ${form.email} creato. Email di impostazione password inviata.`);
       setShowCrea(false);
-      setForm({ nome: '', email: '', password: '', ruolo: 'CAMERIERE' });
+      setForm({ nome: '', email: '', ruolo: 'CAMERIERE' });
       await carica();
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } };
@@ -174,10 +172,9 @@ export default function AdminPage() {
                   className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 rounded-lg" />
               </div>
               <div>
-                <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Password</Label>
-                <Input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                  placeholder="••••••••" required minLength={6}
-                  className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-600 rounded-lg" />
+                <p className="text-xs text-zinc-500 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5">
+                  Verrà inviata un'email all'utente con un link per impostare la propria password.
+                </p>
               </div>
               <div>
                 <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Ruolo</Label>
