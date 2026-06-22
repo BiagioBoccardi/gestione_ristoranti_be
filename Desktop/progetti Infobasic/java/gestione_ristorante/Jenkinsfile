@@ -167,7 +167,10 @@ pipeline {
                         passwordVariable: 'DOCKER_HUB_PASSWORD'
                     )
                 ]) {
-                    sh 'docker compose up -d --remove-orphans'
+                    sh '''
+                        docker rm -f gestione_ristoranti-frontend-1 gestione_ristoranti-backend-1 2>/dev/null || true
+                        docker compose up -d --remove-orphans
+                    '''
                 }
             }
         }
