@@ -1,6 +1,5 @@
 /// <reference types="vitest/globals" />
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, fireEvent } from '@testing-library/react';
 import OrdineForm from '@/components/ordini/OrdineForm';
 import type { Piatto } from '@/types/menu';
 
@@ -111,7 +110,7 @@ describe('OrdineForm', () => {
     );
 
     const annullaBtn = screen.getByRole('button', { name: /annulla/i });
-    await userEvent.click(annullaBtn);
+    fireEvent.click(annullaBtn);
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
