@@ -6,7 +6,7 @@ import { Role } from '@/types/auth';
 import {
   UtensilsCrossed, ClipboardList, ChefHat, BarChart3,
   Users, CalendarDays, FlaskConical, LogOut, X, Menu as MenuIcon,
-  ShieldCheck,
+  ShieldCheck, LayoutDashboard,
 } from 'lucide-react';
 
 interface NavItem {
@@ -17,6 +17,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
+  { icon: LayoutDashboard,  label: 'Dashboard',         path: '/dashboard',           roles: null },
   { icon: UtensilsCrossed, label: 'Menu',              path: '/menu',                roles: null },
   { icon: ClipboardList,   label: 'Ordini',            path: '/ordini',              roles: [Role.ADMIN, Role.CAMERIERE] },
   { icon: ChefHat,         label: 'Cucina',            path: '/cucina',              roles: [Role.ADMIN, Role.CUOCO] },
