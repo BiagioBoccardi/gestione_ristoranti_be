@@ -1,10 +1,14 @@
 package com.gestione.ristoranti.gestione_ristoranti.staff.service;
 
+import com.gestione.ristoranti.gestione_ristoranti.auth.model.Ordine;
+import com.gestione.ristoranti.gestione_ristoranti.auth.model.Prenotazione;
 import com.gestione.ristoranti.gestione_ristoranti.auth.model.Ruolo;
 import com.gestione.ristoranti.gestione_ristoranti.auth.model.Utente;
 import com.gestione.ristoranti.gestione_ristoranti.auth.repository.RuoloRepository;
 import com.gestione.ristoranti.gestione_ristoranti.auth.repository.UtenteRepository;
 import com.gestione.ristoranti.gestione_ristoranti.exception.ResourceNotFoundException;
+import com.gestione.ristoranti.gestione_ristoranti.ordini.repository.OrdineRepository;
+import com.gestione.ristoranti.gestione_ristoranti.prenotazioni.repository.PrenotazioneRepository;
 import com.gestione.ristoranti.gestione_ristoranti.staff.dto.AggiornaStaffRequest;
 import com.gestione.ristoranti.gestione_ristoranti.staff.dto.StaffDetailResponse;
 import com.gestione.ristoranti.gestione_ristoranti.staff.dto.StaffResponse;
@@ -29,6 +33,8 @@ public class StaffService {
     private final UtenteRepository utenteRepository;
     private final RuoloRepository ruoloRepository;
     private final TurnoRepository turnoRepository;
+    private final OrdineRepository ordineRepository;
+    private final PrenotazioneRepository prenotazioneRepository;
 
     // ── Staff ─────────────────────────────────────────────────────────────────
 
@@ -85,6 +91,12 @@ public class StaffService {
         if (utente.getEmail().equals(emailCorrente)) {
             throw new IllegalStateException("Non puoi eliminare il tuo stesso account");
         }
+        turnoRepository.deleteAll(turnoRepository.findByUtenteId(id));
+        List<Prenotazione> prenotazioni = prenotazioneRepository.findByUtente(utente);
+        prenotazioneRepository.deleteAll(prenotazioni);
+        List<Ordine> ordini = ordineRepository.findByUtenteId(id);
+        ordini.forEach(o -> o.setUtente(null));
+        ordineRepository.saveAll(ordini);
         utenteRepository.delete(utente);
     }
 
