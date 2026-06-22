@@ -49,15 +49,17 @@ pipeline {
         // ── 3. SECURITY SCAN (Snyk) ───────────────────────────────────────────
         stage('Security Scan (Snyk)') {
             steps {
-                snykSecurity(
-                    snykInstallation: 'snyk',
-                    snykTokenId: 'snyk-token',
-                    severity: 'high',
-                    targetFile: 'pom.xml',
-                    projectName: 'gestione-ristorante-backend',
-                    failOnIssues: false,
-                    monitorProjectOnBuild: true
-                )
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    snykSecurity(
+                        snykInstallation: 'snyk',
+                        snykTokenId: 'snyk-token',
+                        severity: 'high',
+                        targetFile: 'pom.xml',
+                        projectName: 'gestione-ristorante-backend',
+                        failOnIssues: false,
+                        monitorProjectOnBuild: true
+                    )
+                }
             }
         }
 
