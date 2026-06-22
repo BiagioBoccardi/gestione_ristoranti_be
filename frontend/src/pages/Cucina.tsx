@@ -88,6 +88,11 @@ export default function CucinaPage() {
   async function handleCambiaStato(id: number, stato: StatoOrdine) {
     try {
       await ordineService.updateStatoOrdine(id, stato);
+      if (STATI_ATTIVI.includes(stato)) {
+        setOrdini(prev => prev.map(o => o.id === id ? { ...o, stato } : o));
+      } else {
+        setOrdini(prev => prev.filter(o => o.id !== id));
+      }
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       setError(msg ?? 'Impossibile aggiornare lo stato.');
