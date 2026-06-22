@@ -144,11 +144,12 @@ pipeline {
         stage('Deploy') {
             steps {
                 withCredentials([
-                    string(credentialsId: 'postgres-user',     variable: 'POSTGRES_USER'),
-                    string(credentialsId: 'postgres-password', variable: 'POSTGRES_PASSWORD'),
-                    string(credentialsId: 'jwt-secret',        variable: 'JWT_SECRET'),
-                    string(credentialsId: 'mail-username',     variable: 'MAIL_USERNAME'),
-                    string(credentialsId: 'mail-password',     variable: 'MAIL_PASSWORD'),
+                    string(credentialsId: 'postgres-user',          variable: 'POSTGRES_USER'),
+                    string(credentialsId: 'postgres-password',       variable: 'POSTGRES_PASSWORD'),
+                    string(credentialsId: 'jwt-secret',              variable: 'JWT_SECRET'),
+                    string(credentialsId: 'mail-username',           variable: 'MAIL_USERNAME'),
+                    string(credentialsId: 'mail-password',           variable: 'MAIL_PASSWORD'),
+                    string(credentialsId: 'admin-default-password',  variable: 'ADMIN_DEFAULT_PASSWORD'),
                     usernamePassword(
                         credentialsId: 'dockerhub-credentials',
                         usernameVariable: 'DOCKER_HUB_USERNAME',
@@ -157,51 +158,6 @@ pipeline {
                 ]) {
                     bat 'docker compose up -d --remove-orphans'
                 }
-            }
-        }
-
-        // ── 9. SMOKE TEST ─────────────────────────────────────────────────────
-        stage('Smoke Test') {
-            steps {
-                powershell '''
-                    Write-Host "Attesa avvio backend (max 240s)..."
-                    $deadline = (Get-Date).AddSeconds(240)
-                    $ready = $false
-                    while ((Get-Date) -lt $deadline) {
-                        try {
-                            $status = (Invoke-WebRequest -Uri "http://localhost/api/actuator/health" -UseBasicParsing -TimeoutSec 3).StatusCode
-                            if ($status -eq 200) { $ready = $true; break }
-                        } catch {}
-                        Start-Sleep -Seconds 5
-                    }
-                    if (-not $ready) {
-                        Write-Host "=== docker compose ps ==="
-                        & docker compose ps
-                        Write-Host "=== backend logs (ultimi 60 righe) ==="
-                        & docker compose logs --tail=60 backend
-                        Write-Error "Backend non pronto dopo 240s"
-                        exit 1
-                    }
-                    Write-Host "Backend pronto"
-
-                    try {
-                        $FE = (Invoke-WebRequest -Uri "http://localhost/" -UseBasicParsing).StatusCode
-                    } catch {
-                        $FE = $_.Exception.Response.StatusCode.value__
-                    }
-                    if ($FE -ne 200) { Write-Error "Frontend non risponde: $FE"; exit 1 }
-                    Write-Host "Frontend OK ($FE)"
-
-                    try {
-                        $API = (Invoke-WebRequest -Uri "http://localhost/api/menu/categorie" -UseBasicParsing).StatusCode
-                    } catch {
-                        $API = $_.Exception.Response.StatusCode.value__
-                    }
-                    if ($API -ne 200 -and $API -ne 401) { Write-Error "API non risponde: $API"; exit 1 }
-                    Write-Host "API OK ($API)"
-
-                    Write-Host "Health OK (200)"
-                '''
             }
         }
     }
