@@ -190,6 +190,7 @@ export default function OrdiniPage() {
         onEditOrdine={handleEditOrdine}
         canEdit={canEdit}
         refreshKey={panelRefreshKey}
+        onTavoloUpdated={loadTavoli}
       />
 
       {/* Modale QR tavolo */}

@@ -92,6 +92,9 @@ export default function MenuPage() {
   const handleSaveCategoria = async (data: CategoriaPayload) => {
     if (editingCategoria) {
       await menuService.updateCategoria(editingCategoria.id, data);
+      setCategorie(prev => prev.map(c =>
+        c.id === editingCategoria.id ? { ...c, ...data } : c
+      ));
       toast.success('Categoria aggiornata.');
     } else {
       await menuService.createCategoria(data);

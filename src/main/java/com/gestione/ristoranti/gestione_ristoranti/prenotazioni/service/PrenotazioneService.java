@@ -119,6 +119,13 @@ public class PrenotazioneService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<PrenotazioneResponse> getTutte() {
+        return prenotazioneRepository.findAll().stream()
+                .map(PrenotazioneResponse::from)
+                .toList();
+    }
+
     private void verificaDisponibilita(Tavolo tavolo, LocalDate data, LocalTime ora, Long escludiId) {
         LocalTime oraInizio = ora.minusMinutes(89);
         LocalTime oraFine = ora.plusMinutes(89);

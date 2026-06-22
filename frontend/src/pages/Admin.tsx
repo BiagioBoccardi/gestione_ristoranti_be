@@ -13,13 +13,14 @@ import {
   Users, Trash2, RefreshCw, Plus, Loader2, LogOut, ShieldCheck,
 } from 'lucide-react';
 
-const RUOLI = ['ADMIN', 'CAMERIERE', 'CUOCO', 'CLIENTE'];
+const RUOLI = ['ADMIN', 'CAMERIERE', 'CUOCO', 'CLIENTE', 'LICENZIATO'];
 
 const BADGE: Record<string, string> = {
   ADMIN:     'bg-indigo-600/20 text-indigo-300 border-indigo-600/30',
   CAMERIERE: 'bg-amber-600/20 text-amber-300 border-amber-600/30',
   CUOCO:     'bg-orange-600/20 text-orange-300 border-orange-600/30',
   CLIENTE:   'bg-zinc-700/40 text-zinc-300 border-zinc-600/30',
+  LICENZIATO:'bg-red-900/30 text-red-400 border-red-800/40',
 };
 
 interface CreaForm {
@@ -55,6 +56,12 @@ export default function AdminPage() {
   useEffect(() => { carica(); }, []);
 
   const cambiaRuolo = async (id: number, nuovoRuolo: string) => {
+    if (nuovoRuolo === 'LICENZIATO') {
+      const utente = utenti.find(u => u.id === id);
+      if (!confirm(`Vuoi licenziare ${utente?.nome ?? 'questo dipendente'}?\nL'utente e tutti i turni associati verranno eliminati definitivamente.`)) return;
+      await elimina(id);
+      return;
+    }
     setUpdating(id);
     try {
       const aggiornato = await adminService.aggiornaRuolo(id, nuovoRuolo);
@@ -176,7 +183,7 @@ export default function AdminPage() {
                 <Label className="text-xs text-zinc-400 uppercase tracking-widest mb-1.5 block">Ruolo</Label>
                 <select value={form.ruolo} onChange={e => setForm(f => ({ ...f, ruolo: e.target.value }))}
                   className="w-full h-10 px-3 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-100 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                  {RUOLI.map(r => <option key={r} value={r}>{r}</option>)}
+                  {RUOLI.filter(r => r !== 'LICENZIATO').map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
               </div>
               <div className="flex gap-3 mt-2">
@@ -237,7 +244,9 @@ export default function AdminPage() {
                           onChange={e => cambiaRuolo(u.id, e.target.value)}
                           className="h-8 px-2 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
                         >
-                          {RUOLI.map(r => <option key={r} value={r}>{r}</option>)}
+                          {RUOLI.filter(r => r !== 'LICENZIATO').map(r => <option key={r} value={r}>{r}</option>)}
+                          <option disabled>──────────────</option>
+                          <option value="LICENZIATO">LICENZIATO (elimina)</option>
                         </select>
                         {updating === u.id && <Loader2 className="w-3.5 h-3.5 text-indigo-400 animate-spin" />}
                         <button

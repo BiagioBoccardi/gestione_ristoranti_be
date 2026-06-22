@@ -13,4 +13,7 @@ export const tavoloService = {
 
   getOrdiniByTavolo: (tavoloId: number): Promise<Ordine[]> =>
     apiClient.get<Ordine[]>(`/ordini/tavolo/${tavoloId}`).then(r => r.data),
+
+  aggiornaStato: (id: number, nuovoStato: string): Promise<Tavolo> =>
+    apiClient.patch<Tavolo>(`/tavoli/${id}/stato`, null, { params: { nuovoStato } }).then(r => r.data),
 };

@@ -2,9 +2,10 @@ import { Users } from 'lucide-react';
 import type { Tavolo, StatoTavolo } from '@/types/ordine';
 
 const STATO_STYLE: Record<StatoTavolo, { bg: string; border: string; text: string; label: string }> = {
-  LIBERO:           { bg: 'bg-green-50',  border: 'border-green-200',  text: 'text-green-700',  label: 'Libero' },
-  OCCUPATO:         { bg: 'bg-amber-50',  border: 'border-amber-200',  text: 'text-amber-700',  label: 'Occupato' },
-  IN_ATTESA_CONTO:  { bg: 'bg-orange-50', border: 'border-orange-300', text: 'text-orange-700', label: 'Conto' },
+  LIBERO:           { bg: 'bg-green-50',   border: 'border-green-200',   text: 'text-green-700',   label: 'Libero' },
+  OCCUPATO:         { bg: 'bg-amber-50',   border: 'border-amber-200',   text: 'text-amber-700',   label: 'Occupato' },
+  IN_ATTESA_CONTO:  { bg: 'bg-orange-50',  border: 'border-orange-300',  text: 'text-orange-700',  label: 'Conto' },
+  DA_PULIRE:        { bg: 'bg-purple-50',  border: 'border-purple-300',  text: 'text-purple-700',  label: 'Da pulire' },
 };
 
 interface TavoloCardProps {

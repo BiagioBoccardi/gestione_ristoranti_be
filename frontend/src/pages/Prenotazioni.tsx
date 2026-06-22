@@ -3,7 +3,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import type { DateSelectArg, EventClickArg } from '@fullcalendar/core';
+import type { DateClickArg, EventClickArg } from '@fullcalendar/core';
 import { CalendarDays, Clock, Users, FileText, Pencil, Trash2, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AppSidebar from '@/components/layout/AppSidebar';
@@ -64,7 +64,7 @@ export default function PrenotazioniPage() {
   const carica = useCallback(async () => {
     try {
       const data = isStaff
-        ? await prenotazioneService.getPerData(new Date().toISOString().split('T')[0])
+        ? await prenotazioneService.getTutte()
         : await prenotazioneService.getMie();
       setPrenotazioni(data);
     } catch {
@@ -107,11 +107,9 @@ export default function PrenotazioniPage() {
     setShowForm(true);
   }
 
-  function handleDateSelect(arg: DateSelectArg) {
-    const data = arg.startStr.split('T')[0];
-    const ora = arg.startStr.includes('T') ? arg.startStr.split('T')[1].substring(0, 5) : '20:00';
-    setDataIniziale(data);
-    setOraIniziale(ora);
+  function handleDateClick(arg: DateClickArg) {
+    setDataIniziale(arg.dateStr);
+    setOraIniziale('20:00');
     setInModifica(null);
     setShowForm(true);
   }
@@ -162,9 +160,7 @@ export default function PrenotazioniPage() {
             }}
             buttonText={{ today: 'Oggi', month: 'Mese', week: 'Settimana' }}
             events={events}
-            selectable={true}
-            selectMirror={true}
-            select={handleDateSelect}
+            dateClick={handleDateClick}
             eventClick={handleEventClick}
             height="auto"
             eventDisplay="block"

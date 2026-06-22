@@ -252,7 +252,7 @@ public class OrdineService {
                 .filter(o -> !o.getId().equals(ordineCorrenteId))
                 .anyMatch(o -> o.getStato() != StatoOrdine.CONSEGNATO);
         if (!altriAttivi) {
-            tavolo.setStato(StatoTavolo.LIBERO);
+            tavolo.setStato(StatoTavolo.IN_ATTESA_CONTO);
             tavoloRepository.save(tavolo);
         }
     }

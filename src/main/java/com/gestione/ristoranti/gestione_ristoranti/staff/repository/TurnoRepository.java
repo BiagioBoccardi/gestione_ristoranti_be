@@ -12,4 +12,5 @@ public interface TurnoRepository extends JpaRepository<Turno, Long> {
     List<Turno> findByStato(StatoTurno stato);
     List<Turno> findByDataInizioBetween(LocalDateTime da, LocalDateTime a);
     long countByUtenteId(Long utenteId);
+    void deleteByUtenteId(Long utenteId);
 }

@@ -10,6 +10,7 @@ import com.gestione.ristoranti.gestione_ristoranti.auth.repository.UtenteReposit
 import com.gestione.ristoranti.gestione_ristoranti.auth.security.JwtUtils;
 import com.gestione.ristoranti.gestione_ristoranti.exception.ResourceNotFoundException;
 import com.gestione.ristoranti.gestione_ristoranti.prenotazioni.service.EmailService;
+import com.gestione.ristoranti.gestione_ristoranti.staff.repository.TurnoRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -34,19 +35,22 @@ public class AuthService {
     private final RuoloRepository ruoloRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final TurnoRepository turnoRepository;
 
     public AuthService(AuthenticationManager authenticationManager,
                        JwtUtils jwtUtils,
                        UtenteRepository utenteRepository,
                        RuoloRepository ruoloRepository,
                        PasswordEncoder passwordEncoder,
-                       EmailService emailService) {
+                       EmailService emailService,
+                       TurnoRepository turnoRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
         this.utenteRepository = utenteRepository;
         this.ruoloRepository = ruoloRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.turnoRepository = turnoRepository;
     }
 
     @Transactional(readOnly = true)
@@ -176,6 +180,7 @@ public class AuthService {
         if (!utenteRepository.existsById(id)) {
             throw new ResourceNotFoundException("Utente non trovato con id: " + id);
         }
+        turnoRepository.deleteByUtenteId(id);
         utenteRepository.deleteById(id);
     }
 

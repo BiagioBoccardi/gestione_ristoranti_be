@@ -14,6 +14,9 @@ export const prenotazioneService = {
   modifica: (id: number, data: PrenotazionePayload): Promise<Prenotazione> =>
     apiClient.put<Prenotazione>(`/prenotazioni/${id}`, data).then(r => r.data),
 
+  getTutte: (): Promise<Prenotazione[]> =>
+    apiClient.get<Prenotazione[]>('/prenotazioni/tutte').then(r => r.data),
+
   cancella: (id: number): Promise<void> =>
     apiClient.delete(`/prenotazioni/${id}`).then(() => undefined),
 };

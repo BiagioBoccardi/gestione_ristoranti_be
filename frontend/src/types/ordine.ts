@@ -4,7 +4,7 @@ export type StatoOrdine =
   | 'PRONTO'
   | 'CONSEGNATO';
 
-export type StatoTavolo = 'LIBERO' | 'OCCUPATO' | 'IN_ATTESA_CONTO';
+export type StatoTavolo = 'LIBERO' | 'OCCUPATO' | 'IN_ATTESA_CONTO' | 'DA_PULIRE';
 
 export interface Tavolo {
   id: number;

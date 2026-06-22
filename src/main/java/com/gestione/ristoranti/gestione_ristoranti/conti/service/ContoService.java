@@ -5,6 +5,9 @@ import com.gestione.ristoranti.gestione_ristoranti.auth.model.MetodoPagamento;
 import com.gestione.ristoranti.gestione_ristoranti.auth.model.Ordine;
 import com.gestione.ristoranti.gestione_ristoranti.auth.model.OrdineItem;
 import com.gestione.ristoranti.gestione_ristoranti.auth.model.StatoOrdine;
+import com.gestione.ristoranti.gestione_ristoranti.auth.model.StatoTavolo;
+import com.gestione.ristoranti.gestione_ristoranti.auth.model.Tavolo;
+import com.gestione.ristoranti.gestione_ristoranti.ordini.repository.TavoloRepository;
 import com.gestione.ristoranti.gestione_ristoranti.conti.dto.ContoItemResponse;
 import com.gestione.ristoranti.gestione_ristoranti.conti.dto.ContoResponse;
 import com.gestione.ristoranti.gestione_ristoranti.conti.dto.PagaContoRequest;
@@ -50,6 +53,7 @@ public class ContoService {
 
     private final ContoRepository contoRepository;
     private final OrdineRepository ordineRepository;
+    private final TavoloRepository tavoloRepository;
 
     /**
      * Apre il conto per un ordine consegnato. Se il conto esiste già lo restituisce
@@ -97,6 +101,13 @@ public class ContoService {
         conto.setPagato(true);
         conto.setMetodo(request.getMetodo());
         conto.setPagamentoIl(LocalDateTime.now());
+
+        Tavolo tavolo = conto.getOrdine().getTavolo();
+        if (tavolo.getStato() == StatoTavolo.IN_ATTESA_CONTO) {
+            tavolo.setStato(StatoTavolo.DA_PULIRE);
+            tavoloRepository.save(tavolo);
+        }
+
         return mapToResponse(contoRepository.save(conto));
     }
 

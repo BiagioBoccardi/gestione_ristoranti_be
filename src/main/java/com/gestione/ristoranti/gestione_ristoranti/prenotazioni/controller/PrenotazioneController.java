@@ -78,6 +78,13 @@ public class PrenotazioneController {
         return ResponseEntity.ok(RestResponse.ok(prenotazioneService.getMiePrenotazioni(userDetails.getUsername())));
     }
 
+    @Operation(summary = "Tutte le prenotazioni", description = "Solo ADMIN e CAMERIERE — nessun filtro data")
+    @GetMapping("/tutte")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAMERIERE')")
+    public ResponseEntity<RestResponse<List<PrenotazioneResponse>>> getTutte() {
+        return ResponseEntity.ok(RestResponse.ok(prenotazioneService.getTutte()));
+    }
+
     @Operation(summary = "Prenotazioni per data", description = "Solo ADMIN e CAMERIERE")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Lista prenotazioni del giorno"),

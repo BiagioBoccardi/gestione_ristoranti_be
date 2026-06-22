@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { RefreshCw, Plus } from 'lucide-react';
+import { RefreshCw, Plus, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import OrdineCard from '@/components/ordini/OrdineCard';
@@ -18,6 +18,7 @@ interface Props {
   onEditOrdine: (ordine: Ordine) => void;
   canEdit: boolean;
   refreshKey: number;
+  onTavoloUpdated?: () => void;
 }
 
 export default function TavoloOrdiniModal({
@@ -28,10 +29,12 @@ export default function TavoloOrdiniModal({
   onEditOrdine,
   canEdit,
   refreshKey,
+  onTavoloUpdated,
 }: Props) {
   const [ordini, setOrdini] = useState<Ordine[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [segnandoPulito, setSegnandoPulito] = useState(false);
 
   const { lastEvent } = useKitchenSocket();
 
@@ -58,6 +61,21 @@ export default function TavoloOrdiniModal({
     if (!lastEvent || !open || !tavolo) return;
     if (lastEvent.tavoloId === tavolo.id) loadOrdini();
   }, [lastEvent]);
+
+  async function handleSegnaPulito() {
+    if (!tavolo) return;
+    setSegnandoPulito(true);
+    try {
+      await tavoloService.aggiornaStato(tavolo.id, 'LIBERO');
+      onTavoloUpdated?.();
+      onClose();
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setError(msg ?? 'Impossibile aggiornare lo stato del tavolo.');
+    } finally {
+      setSegnandoPulito(false);
+    }
+  }
 
   async function handleCambiaStato(id: number, stato: StatoOrdine) {
     try {
@@ -137,14 +155,26 @@ export default function TavoloOrdiniModal({
           )}
 
           {canEdit && (
-            <div className="border-t border-stone-100 pt-3 mt-1">
-              <Button
-                onClick={onNuovoOrdine}
-                className="w-full bg-stone-800 hover:bg-stone-700 text-stone-50 tracking-widest uppercase text-xs gap-1.5"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Nuovo ordine
-              </Button>
+            <div className="border-t border-stone-100 pt-3 mt-1 flex flex-col gap-2">
+              {tavolo?.stato === 'DA_PULIRE' && (
+                <Button
+                  onClick={handleSegnaPulito}
+                  disabled={segnandoPulito}
+                  className="w-full bg-purple-700 hover:bg-purple-600 text-white tracking-widest uppercase text-xs gap-1.5"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  {segnandoPulito ? 'Aggiornamento…' : 'Segna come pulito'}
+                </Button>
+              )}
+              {tavolo?.stato !== 'DA_PULIRE' && (
+                <Button
+                  onClick={onNuovoOrdine}
+                  className="w-full bg-stone-800 hover:bg-stone-700 text-stone-50 tracking-widest uppercase text-xs gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Nuovo ordine
+                </Button>
+              )}
             </div>
           )}
         </div>
